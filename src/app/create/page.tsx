@@ -4,26 +4,121 @@ import { useState } from 'react';
 import { TRIGGERS, ACTIONS, Plugin } from "@/lib/mockData";
 import { PluginCard } from "@/components/PluginCard";
 import { Button } from "@/components/ui/button";
+import { ConfigForm } from "@/components/ConfigForm";
+import { createWorkflow, WorkflowCreate } from "@/lib/api";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronRight, ArrowRight, Check, ChevronLeft } from "lucide-react";
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 export default function CreatePage() {
-    const [selectedTrigger, setSelectedTrigger] = useState<Plugin | null>(null);
-    const [selectedAction, setSelectedAction] = useState<Plugin | null>(null);
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [isSuccess, setIsSuccess] = useState(false);
+    const router = useRouter();
+    // Steps:
+    // 1: Trigger Provider Select
+    // 2: Trigger Function Select
+    // 3: Trigger Config
+    // 4: Action Provider Select
+    // 5: Action Function Select
+    // 6: Action Config
+    // 7: Success
+    const [step, setStep] = useState(1);
 
-    const handleCreate = async () => {
-        setIsSubmitting(true);
-        // Mock API call
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        console.log('Created workflow:', { trigger: selectedTrigger, action: selectedAction });
-        setIsSubmitting(false);
-        setIsSuccess(true);
+    const [selectedTriggerProvider, setSelectedTriggerProvider] = useState<string | null>(null);
+    const [selectedTrigger, setSelectedTrigger] = useState<Plugin | null>(null);
+    const [triggerConfig, setTriggerConfig] = useState<Record<string, string>>({});
+
+    const [selectedActionProvider, setSelectedActionProvider] = useState<string | null>(null);
+    const [selectedAction, setSelectedAction] = useState<Plugin | null>(null);
+    const [actionConfig, setActionConfig] = useState<Record<string, string>>({});
+
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    // Helper functions
+    const getUniqueProviders = (plugins: Plugin[]) => {
+        return Array.from(new Map(plugins.map(p => [p.name, p])).values());
     };
 
-    if (isSuccess) {
+    const getPluginsByProvider = (plugins: Plugin[], providerName: string) => {
+        return plugins.filter(p => p.name === providerName);
+    };
+
+    // Handlers
+    const handleTriggerProviderSelect = (plugin: Plugin) => {
+        setSelectedTriggerProvider(plugin.name);
+        setStep(2);
+    };
+
+    const handleTriggerSelect = (plugin: Plugin) => {
+        setSelectedTrigger(plugin);
+        setStep(3);
+    };
+
+    const handleTriggerConfigSubmit = () => {
+        setStep(4);
+    };
+
+    const handleActionProviderSelect = (plugin: Plugin) => {
+        setSelectedActionProvider(plugin.name);
+        setStep(5);
+    };
+
+    const handleActionSelect = (plugin: Plugin) => {
+        setSelectedAction(plugin);
+        setStep(6);
+    };
+
+    const handleBack = () => {
+        if (step === 2) {
+            setSelectedTriggerProvider(null);
+            setStep(1);
+        } else if (step === 3) {
+            setSelectedTrigger(null);
+            setStep(2);
+        } else if (step === 4) {
+            // Going back from Action Provider Select means going back to Trigger Config (Step 3)
+            setStep(3);
+        } else if (step === 5) {
+            setSelectedActionProvider(null);
+            setStep(4);
+        } else if (step === 6) {
+            setSelectedAction(null);
+            setStep(5);
+        }
+    };
+
+    const handleCreate = async () => {
+        if (!selectedTrigger || !selectedAction) return;
+
+        setIsSubmitting(true);
+        setError(null);
+
+        const workflowData: WorkflowCreate = {
+            name: `${selectedTrigger.name} to ${selectedAction.name}`,
+            description: `Workflow triggered by ${selectedTrigger.name} and performing ${selectedAction.name}`,
+            workflow_json: {
+                trigger: {
+                    name: selectedTrigger.id,
+                    config: triggerConfig
+                },
+                action: {
+                    name: selectedAction.id,
+                    config: actionConfig
+                }
+            }
+        };
+
+        try {
+            await createWorkflow(workflowData);
+            setStep(7);
+        } catch (err: any) {
+            setError(err.message || 'Something went wrong');
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    if (step === 7) {
         return (
             <div className="flex flex-col items-center justify-center min-h-[60vh] text-center gap-6">
                 <motion.div
@@ -49,117 +144,181 @@ export default function CreatePage() {
                 <p className="text-zinc-500">Connect two services together.</p>
             </div>
 
-            <div className="flex flex-col md:flex-row gap-8 items-start relative">
-
-                {/* Step 1: Trigger */}
-                <div className={`flex-1 w-full transition-all duration-500 ${selectedTrigger ? 'md:max-w-sm' : ''}`}>
-                    <div className="mb-6 flex items-center justify-between">
-                        <h2 className="text-2xl font-bold flex items-center gap-2">
-                            <span className="bg-black text-white dark:bg-white dark:text-black w-8 h-8 rounded-full flex items-center justify-center text-sm">1</span>
-                            Trigger
-                        </h2>
-                        {selectedTrigger && (
-                            <Button variant="ghost" size="sm" onClick={() => { setSelectedTrigger(null); setSelectedAction(null); }}>
-                                Change
-                            </Button>
-                        )}
-                    </div>
-
-                    <AnimatePresence mode="wait">
-                        {selectedTrigger ? (
-                            <motion.div
-                                key="selected-trigger"
-                                initial={{ opacity: 0, scale: 0.9 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                            >
-                                <PluginCard plugin={selectedTrigger} selected />
-                            </motion.div>
-                        ) : (
-                            <motion.div
-                                key="trigger-list"
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                className="grid grid-cols-2 md:grid-cols-3 gap-4"
-                            >
-                                {TRIGGERS.map(t => (
-                                    <PluginCard key={t.id} plugin={t} onClick={setSelectedTrigger} />
-                                ))}
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
+            <div className="flex flex-col items-center max-w-4xl mx-auto">
+                {/* Step Indicators */}
+                <div className="flex flex-wrap justify-center items-center gap-2 mb-8 text-sm text-zinc-500">
+                    <span className={step >= 1 ? "text-primary font-bold" : ""}>Trigger Service</span>
+                    <ChevronRight size={14} />
+                    <span className={step >= 2 ? "text-primary font-bold" : ""}>Event</span>
+                    <ChevronRight size={14} />
+                    <span className={step >= 3 ? "text-primary font-bold" : ""}>Config</span>
+                    <ChevronRight size={14} />
+                    <span className={step >= 4 ? "text-primary font-bold" : ""}>Action Service</span>
+                    <ChevronRight size={14} />
+                    <span className={step >= 5 ? "text-primary font-bold" : ""}>Function</span>
+                    <ChevronRight size={14} />
+                    <span className={step >= 6 ? "text-primary font-bold" : ""}>Config</span>
                 </div>
 
-                {/* Connector Arrow */}
-                {selectedTrigger && (
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        className="hidden md:flex self-center text-zinc-300"
-                    >
-                        <ChevronRight size={48} />
-                    </motion.div>
-                )}
-
-                {/* Step 2: Action */}
-                <AnimatePresence>
-                    {selectedTrigger && (
+                <AnimatePresence mode="wait">
+                    {/* Step 1: Trigger Provider Select */}
+                    {step === 1 && (
                         <motion.div
+                            key="step1"
                             initial={{ opacity: 0, x: 20 }}
                             animate={{ opacity: 1, x: 0 }}
-                            className="flex-1 w-full"
+                            exit={{ opacity: 0, x: -20 }}
+                            className="w-full"
                         >
-                            <div className="mb-6 flex items-center justify-between">
-                                <h2 className="text-2xl font-bold flex items-center gap-2">
-                                    <span className="bg-black text-white dark:bg-white dark:text-black w-8 h-8 rounded-full flex items-center justify-center text-sm">2</span>
-                                    Action
-                                </h2>
-                                {selectedAction && (
-                                    <Button variant="ghost" size="sm" onClick={() => setSelectedAction(null)}>
-                                        Change
-                                    </Button>
-                                )}
+                            <h2 className="text-2xl font-bold mb-6 text-center">Choose a Trigger Service</h2>
+                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                {getUniqueProviders(TRIGGERS).map(t => (
+                                    <PluginCard key={t.id} plugin={t} onClick={handleTriggerProviderSelect} />
+                                ))}
+                            </div>
+                        </motion.div>
+                    )}
+
+                    {/* Step 2: Trigger Function Select */}
+                    {step === 2 && selectedTriggerProvider && (
+                        <motion.div
+                            key="step2"
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -20 }}
+                            className="w-full"
+                        >
+                            <div className="flex items-center gap-4 mb-6 justify-center relative">
+                                <Button variant="ghost" size="icon" onClick={handleBack} className="absolute left-0">
+                                    <ChevronLeft size={20} />
+                                </Button>
+                                <h2 className="text-2xl font-bold text-center">Select {selectedTriggerProvider} Event</h2>
+                            </div>
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                {getPluginsByProvider(TRIGGERS, selectedTriggerProvider).map(t => (
+                                    <PluginCard key={t.id} plugin={t} onClick={handleTriggerSelect} />
+                                ))}
+                            </div>
+                        </motion.div>
+                    )}
+
+                    {/* Step 3: Trigger Config */}
+                    {step === 3 && selectedTrigger && (
+                        <motion.div
+                            key="step3"
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -20 }}
+                            className="w-full max-w-2xl bg-card border rounded-xl p-6 shadow-sm"
+                        >
+                            <div className="flex items-center gap-4 mb-6">
+                                <Button variant="ghost" size="icon" onClick={handleBack}>
+                                    <ChevronLeft size={20} />
+                                </Button>
+                                <h2 className="text-2xl font-bold">Configure {selectedTrigger.description}</h2>
                             </div>
 
-                            {selectedAction ? (
-                                <motion.div
-                                    initial={{ opacity: 0, scale: 0.9 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                >
-                                    <PluginCard plugin={selectedAction} selected />
-                                </motion.div>
+                            {selectedTrigger.configFields && selectedTrigger.configFields.length > 0 ? (
+                                <ConfigForm
+                                    fields={selectedTrigger.configFields}
+                                    values={triggerConfig}
+                                    onChange={(name, value) => setTriggerConfig(prev => ({ ...prev, [name]: value }))}
+                                />
                             ) : (
-                                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                                    {ACTIONS.map(a => (
-                                        <PluginCard key={a.id} plugin={a} onClick={setSelectedAction} />
-                                    ))}
+                                <p className="text-zinc-500">No configuration needed.</p>
+                            )}
+
+                            <Button className="w-full mt-6" onClick={handleTriggerConfigSubmit}>
+                                Next <ChevronRight size={16} className="ml-2" />
+                            </Button>
+                        </motion.div>
+                    )}
+
+                    {/* Step 4: Action Provider Select */}
+                    {step === 4 && (
+                        <motion.div
+                            key="step4"
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -20 }}
+                            className="w-full"
+                        >
+                            <div className="flex items-center gap-4 mb-6 justify-center relative">
+                                <Button variant="ghost" size="icon" onClick={handleBack} className="absolute left-0">
+                                    <ChevronLeft size={20} />
+                                </Button>
+                                <h2 className="text-2xl font-bold text-center">Choose an Action Service</h2>
+                            </div>
+                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                {getUniqueProviders(ACTIONS).map(a => (
+                                    <PluginCard key={a.id} plugin={a} onClick={handleActionProviderSelect} />
+                                ))}
+                            </div>
+                        </motion.div>
+                    )}
+
+                    {/* Step 5: Action Function Select */}
+                    {step === 5 && selectedActionProvider && (
+                        <motion.div
+                            key="step5"
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -20 }}
+                            className="w-full"
+                        >
+                            <div className="flex items-center gap-4 mb-6 justify-center relative">
+                                <Button variant="ghost" size="icon" onClick={handleBack} className="absolute left-0">
+                                    <ChevronLeft size={20} />
+                                </Button>
+                                <h2 className="text-2xl font-bold text-center">Select {selectedActionProvider} Action</h2>
+                            </div>
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                {getPluginsByProvider(ACTIONS, selectedActionProvider).map(a => (
+                                    <PluginCard key={a.id} plugin={a} onClick={handleActionSelect} />
+                                ))}
+                            </div>
+                        </motion.div>
+                    )}
+
+                    {/* Step 6: Action Config */}
+                    {step === 6 && selectedAction && (
+                        <motion.div
+                            key="step6"
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -20 }}
+                            className="w-full max-w-2xl bg-card border rounded-xl p-6 shadow-sm"
+                        >
+                            <div className="flex items-center gap-4 mb-6">
+                                <Button variant="ghost" size="icon" onClick={handleBack}>
+                                    <ChevronLeft size={20} />
+                                </Button>
+                                <h2 className="text-2xl font-bold">Configure {selectedAction.description}</h2>
+                            </div>
+
+                            {selectedAction.configFields && selectedAction.configFields.length > 0 ? (
+                                <ConfigForm
+                                    fields={selectedAction.configFields}
+                                    values={actionConfig}
+                                    onChange={(name, value) => setActionConfig(prev => ({ ...prev, [name]: value }))}
+                                />
+                            ) : (
+                                <p className="text-zinc-500">No configuration needed.</p>
+                            )}
+
+                            {error && (
+                                <div className="p-3 bg-red-100 text-red-600 rounded-md mt-4 text-sm">
+                                    {error}
                                 </div>
                             )}
+
+                            <Button className="w-full mt-6" onClick={handleCreate} disabled={isSubmitting}>
+                                {isSubmitting ? 'Connecting...' : 'Connect'}
+                            </Button>
                         </motion.div>
                     )}
                 </AnimatePresence>
             </div>
-
-            {/* Step 3: Action Bar */}
-            <AnimatePresence>
-                {selectedTrigger && selectedAction && (
-                    <motion.div
-                        initial={{ opacity: 0, y: 50 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="fixed bottom-0 left-0 right-0 p-6 bg-white dark:bg-zinc-900 border-t border-zinc-200 dark:border-zinc-800 flex justify-center z-40 shadow-[0_-10px_40px_rgba(0,0,0,0.1)]"
-                    >
-                        <div className="flex items-center gap-4 max-w-4xl w-full justify-between">
-                            <div className="hidden md:flex items-center gap-4">
-                                <span className="font-bold">{selectedTrigger.name}</span>
-                                <ArrowRight size={16} />
-                                <span className="font-bold">{selectedAction.name}</span>
-                            </div>
-                            <Button size="lg" onClick={handleCreate} disabled={isSubmitting} className="w-full md:w-auto text-lg px-12 rounded-full">
-                                {isSubmitting ? 'Connecting...' : 'Connect'}
-                            </Button>
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
         </div>
     );
 }

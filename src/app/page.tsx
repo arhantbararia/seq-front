@@ -6,9 +6,13 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
+
+
+
 export default function Home() {
   return (
-    <div className="flex flex-col gap-20 pb-20 max-w-7xl mx-auto">
+    <div className="flex flex-col gap-20 pb-20 max-w-7xl mx-auto relative">
+
       {/* Hero Section */}
       <section className="flex flex-col items-center text-center gap-6 mt-10 md:mt-20">
         <motion.h1
@@ -58,7 +62,7 @@ export default function Home() {
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 px-4">
-          {ALL_PLUGINS.map((plugin, index) => (
+          {Array.from(new Map(ALL_PLUGINS.map(p => [p.name, p])).values()).map((plugin, index) => (
             <motion.div
               key={plugin.id}
               initial={{ opacity: 0, y: 20 }}

@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { Webhook, Clock, Rss, Mail, Globe, Twitter } from "lucide-react";
 import { motion } from "framer-motion";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const iconMap: Record<string, React.FC<any>> = {
     webhook: Webhook,
     clock: Clock,
