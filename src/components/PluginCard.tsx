@@ -2,7 +2,13 @@
 
 import { Plugin } from "@/lib/mockData";
 import { cn } from "@/lib/utils";
-import { Webhook, Clock, Rss, Mail, Globe, Twitter } from "lucide-react";
+import {
+    Webhook, Clock, Rss, Mail, Globe, Twitter,
+    Facebook, Youtube, Music, Instagram, Camera,
+    Smartphone, HardDrive, FileText, Activity,
+    Linkedin, MessageCircle, MessageSquare, Bell,
+    Send, Calendar, Github
+} from "lucide-react";
 import { motion } from "framer-motion";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -13,6 +19,22 @@ const iconMap: Record<string, React.FC<any>> = {
     mail: Mail,
     globe: Globe,
     twitter: Twitter,
+    facebook: Facebook,
+    youtube: Youtube,
+    music: Music,
+    instagram: Instagram,
+    camera: Camera,
+    smartphone: Smartphone,
+    'hard-drive': HardDrive,
+    'file-text': FileText,
+    activity: Activity,
+    linkedin: Linkedin,
+    'message-circle': MessageCircle,
+    'message-square': MessageSquare,
+    bell: Bell,
+    send: Send,
+    calendar: Calendar,
+    github: Github,
 };
 
 interface PluginCardProps {
