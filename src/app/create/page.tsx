@@ -138,13 +138,28 @@ export default function CreatePage() {
         setIsSubmitting(true);
         setError(null);
 
+        // Extract used variables from action config
+        const usedVariables = new Set<string>();
+        Object.values(actionConfig).forEach(value => {
+            const matches = value.match(/{{(.*?)}}/g);
+            if (matches) {
+                matches.forEach(match => {
+                    const varName = match.replace(/{{|}}/g, '');
+                    usedVariables.add(varName);
+                });
+            }
+        });
+
+        const selectedOutputs = selectedTrigger.outputs?.filter(output => usedVariables.has(output.name)) || [];
+
         const workflowData: WorkflowCreate = {
             name: `${selectedTrigger.name} to ${selectedAction.name}`,
             description: `Workflow triggered by ${selectedTrigger.name} and performing ${selectedAction.name}`,
             workflow_json: {
                 trigger: {
                     name: selectedTrigger.id,
-                    config: triggerConfig
+                    config: triggerConfig,
+                    selected_output: selectedOutputs
                 },
                 action: {
                     name: selectedAction.id,
@@ -350,6 +365,7 @@ export default function CreatePage() {
                             fields={selectedAction.configFields}
                             values={actionConfig}
                             onChange={(name, value) => setActionConfig(prev => ({ ...prev, [name]: value }))}
+                            availableVariables={selectedTrigger?.outputs || []}
                         />
                     ) : (
                         <p className="text-zinc-500 text-center py-8">No specific configuration needed for this action.</p>

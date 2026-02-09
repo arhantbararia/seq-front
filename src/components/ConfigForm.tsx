@@ -7,9 +7,10 @@ interface ConfigFormProps {
     fields: ConfigField[];
     values: Record<string, string>;
     onChange: (name: string, value: string) => void;
+    availableVariables?: { name: string; label: string }[];
 }
 
-export function ConfigForm({ fields, values, onChange }: ConfigFormProps) {
+export function ConfigForm({ fields, values, onChange, availableVariables }: ConfigFormProps) {
     return (
         <div className="space-y-4">
             {fields.map((field) => (
@@ -32,14 +33,34 @@ export function ConfigForm({ fields, values, onChange }: ConfigFormProps) {
                             </SelectContent>
                         </Select>
                     ) : (
-                        <Input
-                            id={field.name}
-                            type="text"
-                            placeholder={field.placeholder}
-                            value={values[field.name] || ''}
-                            onChange={(e) => onChange(field.name, e.target.value)}
-                            required={field.required}
-                        />
+                        <div className="flex gap-2">
+                            <Input
+                                id={field.name}
+                                type="text"
+                                placeholder={field.placeholder}
+                                value={values[field.name] || ''}
+                                onChange={(e) => onChange(field.name, e.target.value)}
+                                required={field.required}
+                                className="flex-1"
+                            />
+                            {availableVariables && availableVariables.length > 0 && (
+                                <Select onValueChange={(val) => {
+                                    const currentVal = values[field.name] || '';
+                                    onChange(field.name, currentVal + val);
+                                }}>
+                                    <SelectTrigger className="w-[100px] shrink-0 border border-input bg-white text-black hover:bg-zinc-50 shadow-sm">
+                                        <SelectValue placeholder="Insert..." />
+                                    </SelectTrigger>
+                                    <SelectContent className="bg-white text-black border-input">
+                                        {availableVariables.map((v) => (
+                                            <SelectItem key={v.name} value={`{{${v.name}}}`} className="cursor-pointer">
+                                                {v.label}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            )}
+                        </div>
                     )}
                 </div>
             ))}

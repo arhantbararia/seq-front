@@ -210,614 +210,737 @@
 - plugin-service-provider: Blogger
   Auth: OAuth 2.0  
   function: Any new post  
+  output: PostTitle, PostUrl, PostContent, PostImageUrl, Labels, PostPublished
   required_config_data: Blog URL or ID
 
 - plugin-service-provider: Blogger
   Auth: OAuth 2.0  
   function: New post labeled  
+  output: PostTitle, PostUrl, PostContent, PostImageUrl, Labels, PostPublished
   required_config_data: Blog URL or ID, label
 
 - plugin-service-provider: Facebook
   Auth: OAuth 2.0  
   function: Any new post by you in area  
+  output: PostID, Message, Link, Picture, Place, CreatedTime
   required_config_data: Location
 
 - plugin-service-provider: Facebook
   Auth: OAuth 2.0  
   function: New status message by you  
+  output: Message, UpdatedTime, PostID
   required_config_data: None
 
 - plugin-service-provider: Facebook
   Auth: OAuth 2.0  
   function: New status message by you with hashtag  
+  output: Message, UpdatedTime, PostID
   required_config_data: Hashtag
 
 - plugin-service-provider: Facebook
   Auth: OAuth 2.0  
   function: New link post by you  
+  output: Link, Message, CreatedTime, PostID
   required_config_data: None
 
 - plugin-service-provider: Facebook
   Auth: OAuth 2.0  
   function: New link post by you with hashtag  
+  output: Link, Message, CreatedTime, PostID
   required_config_data: Hashtag
 
 - plugin-service-provider: Facebook
   Auth: OAuth 2.0  
   function: New photo post by you  
+  output: Picture, Link, Message, CreatedTime, PostID
   required_config_data: None
 
 - plugin-service-provider: Facebook
   Auth: OAuth 2.0  
   function: New photo post by you with hashtag  
+  output: Picture, Link, Message, CreatedTime, PostID
   required_config_data: Hashtag
 
 - plugin-service-provider: Facebook
   Auth: OAuth 2.0  
   function: New photo post by you in area  
+  output: Picture, Link, Message, Place, CreatedTime, PostID
   required_config_data: Location
 
 - plugin-service-provider: Facebook
   Auth: OAuth 2.0  
   function: You are tagged in a photo  
+  output: Link, From, Tags, CreatedTime, ImageSource
   required_config_data: None
 
 - plugin-service-provider: Facebook
   Auth: OAuth 2.0  
   function: Your profile changes  
+  output: ProfileUrl, FirstName, LastName, Name, Gender, Locale, Timezone, UpdatedTime
   required_config_data: None
 
 - plugin-service-provider: Spotify
   Auth: OAuth 2.0  
   function: New followed show  
+  output: ShowName, ShowUrl, ShowDescription, Publisher, ImageUrl
   required_config_data: None
 
 - plugin-service-provider: Spotify
   Auth: OAuth 2.0  
   function: New saved episode  
+  output: EpisodeName, ShowName, EpisodeURL, Description, PublishDate
   required_config_data: None
 
 - plugin-service-provider: Spotify
   Auth: OAuth 2.0  
   function: New saved track  
+  output: TrackName, ArtistName, AlbumName, TrackURL, AddedAt
   required_config_data: None
 
 - plugin-service-provider: Spotify
   Auth: OAuth 2.0  
   function: New show from search  
+  output: ShowName, ShowUrl, ShowDescription, Publisher, ImageUrl
   required_config_data: Search query
 
 - plugin-service-provider: Spotify
   Auth: OAuth 2.0  
   function: New recently played track  
+  output: TrackName, ArtistName, AlbumName, TrackURL, PlayedAt
   required_config_data: None
 
 - plugin-service-provider: Spotify
   Auth: OAuth 2.0  
   function: New saved album  
+  output: AlbumName, ArtistName, AlbumURL, AddedAt
   required_config_data: None
 
 - plugin-service-provider: Spotify
   Auth: OAuth 2.0  
   function: New episode from followed show  
+  output: EpisodeName, ShowName, EpisodeURL, Description, PublishDate
   required_config_data: None
 
 - plugin-service-provider: Spotify
   Auth: OAuth 2.0  
   function: New episode from search  
+  output: EpisodeName, ShowName, EpisodeURL, Description, PublishDate
   required_config_data: Search query
 
 - plugin-service-provider: Spotify
   Auth: OAuth 2.0  
   function: New track added to a playlist  
+  output: TrackName, ArtistName, AlbumName, TrackURL, AddedAt, AddedBy
   required_config_data: Playlist name or ID
 
 - plugin-service-provider: WhatsApp
   Auth: OAuth 2.0, API Key  
   function: You sent a specific WhatsApp message to InOut  
+  output: MessageText, Sender, Timestamp
   required_config_data: Specific message or key phrase
 
 - plugin-service-provider: WhatsApp
   Auth: OAuth 2.0, API Key  
   function: You sent any WhatsApp message to InOut  
+  output: MessageText, Sender, Timestamp
   required_config_data: None
 
 - plugin-service-provider: YouTube
   Auth: OAuth 2.0  
   function: New video from search  
+  output: Title, Description, Url, AuthorName, PublishedAt
   required_config_data: Search query
 
 - plugin-service-provider: YouTube
   Auth: OAuth 2.0  
   function: New liked video  
+  output: Title, Description, Url, AuthorName, LikedAt
   required_config_data: None
 
 - plugin-service-provider: YouTube
   Auth: OAuth 2.0  
   function: You subscribe to a channel  
+  output: ChannelName, ChannelUrl, Description
   required_config_data: None
 
 - plugin-service-provider: YouTube
   Auth: OAuth 2.0  
   function: New video by channel  
+  output: Title, Description, Url, AuthorName, PublishedAt
   required_config_data: Channel name or ID
 
 - plugin-service-provider: YouTube
   Auth: OAuth 2.0  
   function: New playlist  
+  output: Title, Description, Url, PublishedAt
   required_config_data: None
 
 - plugin-service-provider: YouTube
   Auth: OAuth 2.0  
   function: New public video uploaded by you  
+  output: Title, Description, Url, EmbedCode, PublishedAt
   required_config_data: None
 
 - plugin-service-provider: YouTube
   Auth: OAuth 2.0  
   function: New public video from subscriptions  
+  output: Title, Description, Url, AuthorName, PublishedAt
   required_config_data: None
 
 - plugin-service-provider: YouTube
   Auth: OAuth 2.0  
   function: New Super Chat message  
+  output: Message, AuthorName, Amount, Currency, PublishedAt
   required_config_data: None
 
 - plugin-service-provider: YouTube
   Auth: OAuth 2.0  
   function: New channel membership  
+  output: MemberName, Level, JoinedAt
   required_config_data: None
 
 - plugin-service-provider: YouTube
   Auth: OAuth 2.0  
   function: New Super Sticker  
+  output: StickerUrl, AuthorName, Amount, Currency, PublishedAt
   required_config_data: None
 
 - plugin-service-provider: Telegram
   Auth: Bot Token  
   function: New message with key phrase to @IFTTT  
+  output: Text, SenderName, Username, Date
   required_config_data: Key phrase
 
 - plugin-service-provider: Telegram
   Auth: Bot Token  
   function: New photo to @IFTTT  
+  output: PhotoUrl, Caption, SenderName, Date
   required_config_data: None
 
 - plugin-service-provider: Telegram
   Auth: Bot Token  
   function: New message with key phrase in a group  
+  output: Text, SenderName, GroupTitle, Date
   required_config_data: Key phrase
 
 - plugin-service-provider: Telegram
   Auth: Bot Token  
   function: New message in a group  
+  output: Text, SenderName, GroupTitle, Date
   required_config_data: None
 
 - plugin-service-provider: Telegram
   Auth: Bot Token  
   function: New post in your channel  
+  output: Text, ChannelName, Date, PostHtml
   required_config_data: None
 
 - plugin-service-provider: Telegram
   Auth: Bot Token  
   function: New photo in your channel  
+  output: PhotoUrl, Caption, ChannelName, Date
   required_config_data: None
 
 - plugin-service-provider: Reddit
   Auth: OAuth 2.0  
   function: Any new post in subreddit  
+  output: Title, Content, Author, Subreddit, Url, ImageUrl, PostedAt
   required_config_data: Subreddit name
 
 - plugin-service-provider: Reddit
   Auth: OAuth 2.0  
   function: New hot post in subreddit  
+  output: Title, Content, Author, Subreddit, Url, ImageUrl, PostedAt
   required_config_data: Subreddit name
 
 - plugin-service-provider: Reddit
   Auth: OAuth 2.0  
   function: New top post in subreddit  
+  output: Title, Content, Author, Subreddit, Url, ImageUrl, PostedAt
   required_config_data: Subreddit name
 
 - plugin-service-provider: Reddit
   Auth: OAuth 2.0  
   function: New post from search  
+  output: Title, Content, Author, Subreddit, Url, ImageUrl, PostedAt
   required_config_data: Search query
 
 - plugin-service-provider: Reddit
   Auth: OAuth 2.0  
   function: New post by you  
+  output: Title, Content, Url, PostedAt
   required_config_data: None
 
 - plugin-service-provider: Reddit
   Auth: OAuth 2.0  
   function: New comment by you  
+  output: CommentBody, LinkToComment, PostedAt
   required_config_data: None
 
 - plugin-service-provider: Reddit
   Auth: OAuth 2.0  
   function: New upvoted post by you  
+  output: Title, Content, Author, Subreddit, Url, PostedAt
   required_config_data: None
 
 - plugin-service-provider: Reddit
   Auth: OAuth 2.0  
   function: New downvoted post by you  
+  output: Title, Content, Author, Subreddit, Url, PostedAt
   required_config_data: None
 
 - plugin-service-provider: Reddit
   Auth: OAuth 2.0  
   function: New post saved by you  
+  output: Title, Content, Author, Subreddit, Url, PostedAt
   required_config_data: None
 
 - plugin-service-provider: X.com
   Auth: OAuth 2.0, OAuth 1.0a  
   function: New tweet by you  
+  output: Text, LinkToTweet, CreatedAt, TweetEmbedCode
   required_config_data: None
 
 - plugin-service-provider: X.com
   Auth: OAuth 2.0, OAuth 1.0a  
   function: New tweet by you with hashtag  
+  output: Text, LinkToTweet, CreatedAt, TweetEmbedCode
   required_config_data: Hashtag
 
 - plugin-service-provider: X.com
   Auth: OAuth 2.0, OAuth 1.0a  
   function: New tweet by you in area  
+  output: Text, LinkToTweet, Place, CreatedAt
   required_config_data: Area/location
 
 - plugin-service-provider: X.com
   Auth: OAuth 2.0, OAuth 1.0a  
   function: New mention of you  
+  output: Text, UserName, LinkToTweet, CreatedAt
   required_config_data: None
 
 - plugin-service-provider: X.com
   Auth: OAuth 2.0, OAuth 1.0a  
   function: New link by you  
+  output: Text, LinkToTweet, Link, CreatedAt
   required_config_data: None
 
 - plugin-service-provider: X.com
   Auth: OAuth 2.0, OAuth 1.0a  
   function: New follower  
+  output: ScreenName, Name, Bio, Location, Url, Protect
   required_config_data: None
 
 - plugin-service-provider: X.com
   Auth: OAuth 2.0, OAuth 1.0a  
   function: New liked tweet by you  
+  output: Text, UserName, LinkToTweet, CreatedAt
   required_config_data: None
 
 - plugin-service-provider: X.com
   Auth: OAuth 2.0, OAuth 1.0a  
   function: New tweet by a specific user  
+  output: Text, LinkToTweet, CreatedAt
   required_config_data: Username
 
 - plugin-service-provider: X.com
   Auth: OAuth 2.0, OAuth 1.0a  
   function: New tweet from search  
+  output: Text, UserName, LinkToTweet, CreatedAt
   required_config_data: Search query
 
 - plugin-service-provider: X.com
   Auth: OAuth 2.0, OAuth 1.0a  
   function: New tweet by anyone in area  
+  output: Text, UserName, LinkToTweet, Place, CreatedAt
   required_config_data: Area/location
 
 - plugin-service-provider: GitHub
   Auth: OAuth 2.0, Personal Access Token  
   function: Any new notification from a repository  
+  output: Repository, Title, Url, Type, Date
   required_config_data: Repository
 
 - plugin-service-provider: GitHub
   Auth: OAuth 2.0, Personal Access Token  
   function: Any new repository event  
+  output: EventType, Repository, Actor, Date
   required_config_data: Repository
 
 - plugin-service-provider: GitHub
   Auth: OAuth 2.0, Personal Access Token  
   function: Any new release  
+  output: TagName, ReleaseName, Body, PublishedAt, Url
   required_config_data: Repository
 
 - plugin-service-provider: GitHub
   Auth: OAuth 2.0, Personal Access Token  
   function: Any new commit  
+  output: Message, Author, Url, Date, Sha
   required_config_data: Repository
 
 - plugin-service-provider: GitHub
   Auth: OAuth 2.0, Personal Access Token  
   function: Any new notification  
+  output: Repository, Title, Url, Type, Date
   required_config_data: None
 
 - plugin-service-provider: GitHub
   Auth: OAuth 2.0, Personal Access Token  
   function: Any new Gist  
+  output: Description, Url, CreatedAt, Owner
   required_config_data: None
 
 - plugin-service-provider: GitHub
   Auth: OAuth 2.0, Personal Access Token  
   function: Any new issue  
+  output: IssueTitle, IssueBody, IssueUrl, User, CreatedAt
   required_config_data: None
 
 - plugin-service-provider: GitHub
   Auth: OAuth 2.0, Personal Access Token  
   function: Any new closed issue  
+  output: IssueTitle, IssueBody, IssueUrl, User, ClosedAt
   required_config_data: None
 
 - plugin-service-provider: GitHub
   Auth: OAuth 2.0, Personal Access Token  
   function: New issue assigned to you  
+  output: IssueTitle, IssueBody, IssueUrl, User, AssignedAt
   required_config_data: None
 
 - plugin-service-provider: GitHub
   Auth: OAuth 2.0, Personal Access Token  
   function: New repository by a specific username or organization  
+  output: RepositoryName, Description, Url, Owner, CreatedAt
   required_config_data: Username or organization
 
 - plugin-service-provider: GitHub
   Auth: OAuth 2.0, Personal Access Token  
   function: New pull request for a specific repository  
+  output: Title, Body, Url, User, CreatedAt
   required_config_data: Repository
 
 - plugin-service-provider: Date & Time
   Auth: None  
   function: Every day at  
+  output: CheckTime
   required_config_data: Specific time
 
 - plugin-service-provider: Date & Time
   Auth: None  
   function: Every hour at  
+  output: CheckTime
   required_config_data: Specific time
 
 - plugin-service-provider: Date & Time
   Auth: None  
   function: Every day of the week at  
+  output: CheckTime
   required_config_data: Day of week, time
 
 - plugin-service-provider: Date & Time
   Auth: None  
   function: Every month on the  
+  output: CheckTime
   required_config_data: Day of month, time
 
 - plugin-service-provider: Date & Time
   Auth: None  
   function: Every year on  
+  output: CheckTime
   required_config_data: Date, time
 
 - plugin-service-provider: SoundCloud
   Auth: OAuth 2.0  
   function: Any new public track  
+  output: Title, Url, ArtworkUrl, Description, Genre, CreatedAt
   required_config_data: None
 
 - plugin-service-provider: SoundCloud
   Auth: OAuth 2.0  
   function: New public like  
+  output: Title, Url, ArtworkUrl, Username, CreatedAt
   required_config_data: None
 
 - plugin-service-provider: SoundCloud
   Auth: OAuth 2.0  
   function: New public track by anyone you follow  
+  output: Title, Url, ArtworkUrl, Description, Genre, CreatedAt
   required_config_data: None
 
 - plugin-service-provider: SoundCloud
   Auth: OAuth 2.0  
   function: New track from search  
+  output: Title, Url, ArtworkUrl, Description, Genre, CreatedAt
   required_config_data: Search query
 
 - plugin-service-provider: SoundCloud
   Auth: OAuth 2.0  
   function: Any new follower  
+  output: Username, ProfileUrl, AvatarUrl
   required_config_data: None
 
 - plugin-service-provider: SoundCloud
   Auth: OAuth 2.0  
   function: New playlist created  
+  output: Title, Url, ArtworkUrl, Description, CreatedAt
   required_config_data: None
 
 - plugin-service-provider: SoundCloud
   Auth: OAuth 2.0  
   function: New track in a playlist  
+  output: Title, Url, ArtworkUrl, PlaylistName
   required_config_data: Playlist
 
 - plugin-service-provider: Email
   Auth: Email Verification, SMTP  
   function: Send IFTTT any email  
+  output: Subject, Body, From, ReceivedAt, AttachmentUrl
   required_config_data: None
 
 - plugin-service-provider: Email
   Auth: Email Verification, SMTP  
   function: Send IFTTT an email tagged  
+  output: Subject, Body, From, ReceivedAt, AttachmentUrl
   required_config_data: Hashtag in subject
 
 - plugin-service-provider: Fitbit
   Auth: OAuth 2.0  
   function: Daily activity summary  
+  output: Date, TotalSteps, CaloriesBurned, Distance, Floors, SedentaryMinutes, VeryActiveMinutes
   required_config_data: None
 
 - plugin-service-provider: Fitbit
   Auth: OAuth 2.0  
   function: Daily step goal achieved  
+  output: TotalSteps, Date, Goal
   required_config_data: None
 
 - plugin-service-provider: Fitbit
   Auth: OAuth 2.0  
   function: Daily distance goal achieved  
+  output: TotalDistance, Date, Goal
   required_config_data: None
 
 - plugin-service-provider: Fitbit
   Auth: OAuth 2.0  
   function: Daily floors climbed goal achieved  
+  output: TotalFloors, Date, Goal
   required_config_data: None
 
 - plugin-service-provider: Fitbit
   Auth: OAuth 2.0  
   function: Daily calorie burn goal achieved  
+  output: CaloriesBurned, Date, Goal
   required_config_data: None
 
 - plugin-service-provider: Fitbit
   Auth: OAuth 2.0  
   function: Daily very active minutes goal achieved  
+  output: VeryActiveMinutes, Date, Goal
   required_config_data: None
 
 - plugin-service-provider: Fitbit
   Auth: OAuth 2.0  
   function: Daily goal not achieved by  
+  output: GoalType, CurrentValue, TargetValue, Time
   required_config_data: Time
 
 - plugin-service-provider: Fitbit
   Auth: OAuth 2.0  
   function: New weight logged  
+  output: Weight, Date, BMI
   required_config_data: None
 
 - plugin-service-provider: Fitbit
   Auth: OAuth 2.0  
   function: New sleep logged  
+  output: StartTime, EndTime, TimeAsleep, Efficiency
   required_config_data: None
 
 - plugin-service-provider: Fitbit
   Auth: OAuth 2.0  
   function: Sleep duration above  
+  output: StartTime, EndTime, TimeAsleep
   required_config_data: Target hours
 
 - plugin-service-provider: Fitbit
   Auth: OAuth 2.0  
   function: Sleep duration below  
+  output: StartTime, EndTime, TimeAsleep
   required_config_data: Target hours
 
 - plugin-service-provider: Google Drive
   Auth: OAuth 2.0  
   function: New file in your folder  
+  output: Filename, FileUrl, MimeType, CreatedDate
   required_config_data: Folder path
 
 - plugin-service-provider: Google Drive
   Auth: OAuth 2.0  
   function: New file from search in your folder  
+  output: Filename, FileUrl, MimeType, CreatedDate
   required_config_data: Search query, folder path
 
 - plugin-service-provider: Google Drive
   Auth: OAuth 2.0  
   function: New photo in your folder  
+  output: Filename, FileUrl, CreatedDate
   required_config_data: Folder path
 
 - plugin-service-provider: Google Drive
   Auth: OAuth 2.0  
   function: New video in your folder  
+  output: Filename, FileUrl, CreatedDate
   required_config_data: Folder path
 
 - plugin-service-provider: Google Drive
   Auth: OAuth 2.0  
   function: New starred file in folder  
+  output: Filename, FileUrl, MimeType, CreatedDate
   required_config_data: Folder path
 
 - plugin-service-provider: Google Sheets
   Auth: OAuth 2.0  
   function: New spreadsheet added to folder  
+  output: Title, SpreadsheetUrl, CreatedDate
   required_config_data: Folder path
 
 - plugin-service-provider: Google Sheets
   Auth: OAuth 2.0  
   function: New worksheet in spreadsheet  
+  output: Title, WorksheetName, CreatedDate
   required_config_data: Spreadsheet ID
 
 - plugin-service-provider: Google Sheets
   Auth: OAuth 2.0  
   function: New row added to spreadsheet  
+  output: RowNumber, ColumnValues, CreatedAt
   required_config_data: Spreadsheet ID
 
 - plugin-service-provider: Google Sheets
   Auth: OAuth 2.0  
   function: Cell updated in spreadsheet  
+  output: Row, Column, Value, UpdatedAt
   required_config_data: Spreadsheet ID
 
 - plugin-service-provider: Threads
   Auth: OAuth 2.0  
   function: Any new post by you  
+  output: Text, Url, CreatedAt
   required_config_data: None
 
 - plugin-service-provider: Threads
   Auth: OAuth 2.0  
   function: New text post by you  
+  output: Text, Url, CreatedAt
   required_config_data: None
 
 - plugin-service-provider: Threads
   Auth: OAuth 2.0  
   function: New image post by you  
+  output: Text, ImageUrl, Url, CreatedAt
   required_config_data: None
 
 - plugin-service-provider: Threads
   Auth: OAuth 2.0  
   function: New video post by you  
+  output: Text, VideoUrl, Url, CreatedAt
   required_config_data: None
 
 - plugin-service-provider: Threads
   Auth: OAuth 2.0  
   function: New carousel post by you  
+  output: Text, CarouselMediaUrls, Url, CreatedAt
   required_config_data: None
 
 - plugin-service-provider: RSS Feed
   Auth: None  
   function: New feed item  
+  output: EntryTitle, EntryUrl, EntryAuthor, EntryContent, EntryPublished
   required_config_data: Feed URL
 
 - plugin-service-provider: RSS Feed
   Auth: None  
   function: New feed item matches  
+  output: EntryTitle, EntryUrl, EntryAuthor, EntryContent, EntryPublished
   required_config_data: Feed URL, keyword or phrase
 
 - plugin-service-provider: Google Calendar
   Auth: OAuth 2.0  
   function: New event added  
+  output: Title, Description, Location, StartTime, EndTime, EventUrl
   required_config_data: None
 
 - plugin-service-provider: Google Calendar
   Auth: OAuth 2.0  
   function: New event from search added  
+  output: Title, Description, Location, StartTime, EndTime, EventUrl
   required_config_data: Search query
 
 - plugin-service-provider: Google Calendar
   Auth: OAuth 2.0  
   function: Any event starts  
+  output: Title, Description, Location, StartTime, EndTime, EventUrl
   required_config_data: None
 
 - plugin-service-provider: Google Calendar
   Auth: OAuth 2.0  
   function: Event from search starts  
+  output: Title, Description, Location, StartTime, EndTime, EventUrl
   required_config_data: Search query
 
 - plugin-service-provider: Google Calendar
   Auth: OAuth 2.0  
   function: Any event ends  
+  output: Title, Description, Location, StartTime, EndTime, EventUrl
   required_config_data: None
 
 - plugin-service-provider: Google Calendar
   Auth: OAuth 2.0  
   function: Event from search ends  
+  output: Title, Description, Location, StartTime, EndTime, EventUrl
   required_config_data: Search query
 
 - plugin-service-provider: Google Calendar
   Auth: OAuth 2.0  
   function: You respond to an event invite  
+  output: Title, Response, EventUrl, StartTime
   required_config_data: None
 
 - plugin-service-provider: Webhooks
   Auth: None, Secret Key  
   function: Receive a web request with a JSON payload  
+  output: JsonPayload, EventName, OccurredAt
   required_config_data: None (URL generated)
 
 - plugin-service-provider: Webhooks
   Auth: None, Secret Key  
   function: Receive a web request  
+  output: EventName, OccurredAt
   required_config_data: None (URL generated)
 
 - plugin-service-provider: Instagram
   Auth: OAuth 2.0  
   function: Any new photo by you  
+  output: Caption, Url, SourceUrl, CreatedAt
   required_config_data: None
 
 - plugin-service-provider: Instagram
   Auth: OAuth 2.0  
   function: New photo by you with specific hashtag  
+  output: Caption, Url, SourceUrl, CreatedAt
   required_config_data: Hashtag
 
 - plugin-service-provider: Instagram
   Auth: OAuth 2.0  
   function: Any new video by you  
+  output: Caption, Url, SourceUrl, CreatedAt
   required_config_data: None
 
 - plugin-service-provider: Instagram
   Auth: OAuth 2.0  
   function: New video by you with specific hashtag  
+  output: Caption, Url, SourceUrl, CreatedAt
   required_config_data: Hashtag

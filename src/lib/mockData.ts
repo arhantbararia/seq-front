@@ -9,6 +9,7 @@ export interface Plugin {
     image?: string;
     authType?: string;
     configFields?: ConfigField[];
+    outputs?: { name: string; label: string }[];
 }
 
 export interface ConfigField {
@@ -80,10 +81,44 @@ const ICONS: Record<string, string> = {
 
 export const TRIGGERS: Plugin[] = [
     // Blogger
-    { id: 'blogger-any-new-post', name: 'Blogger', type: 'trigger', description: 'Any new post', icon: 'file-text', color: COLORS['Blogger'], authType: 'OAuth 2.0', configFields: [{ name: 'blog_url_or_id', label: 'Blog URL or ID', type: 'text', required: true }] },
+    {
+        id: 'blogger-any-new-post',
+        name: 'Blogger',
+        type: 'trigger',
+        description: 'Any new post',
+        icon: 'file-text',
+        color: COLORS['Blogger'],
+        authType: 'OAuth 2.0',
+        configFields: [{ name: 'blog_url_or_id', label: 'Blog URL or ID', type: 'text', required: true }],
+        outputs: [
+            { name: 'post_title', label: 'Post Title' },
+            { name: 'post_url', label: 'Post URL' },
+            { name: 'post_content', label: 'Post Content' },
+            { name: 'post_image_url', label: 'Post Image URL' },
+            { name: 'labels', label: 'Labels' },
+            { name: 'post_published', label: 'Published Date' }
+        ]
+    },
     { id: 'blogger-new-post-labeled', name: 'Blogger', type: 'trigger', description: 'New post labeled', icon: 'file-text', color: COLORS['Blogger'], authType: 'OAuth 2.0', configFields: [{ name: 'blog_url_or_id', label: 'Blog URL or ID', type: 'text', required: true }, { name: 'label', label: 'Label', type: 'text', required: true }] },
     // Facebook
-    { id: 'facebook-new-post-area', name: 'Facebook', type: 'trigger', description: 'Any new post by you in area', icon: 'facebook', color: COLORS['Facebook'], authType: 'OAuth 2.0', configFields: [{ name: 'location', label: 'Location', type: 'text', required: true }] },
+    {
+        id: 'facebook-new-post-area',
+        name: 'Facebook',
+        type: 'trigger',
+        description: 'Any new post by you in area',
+        icon: 'facebook',
+        color: COLORS['Facebook'],
+        authType: 'OAuth 2.0',
+        configFields: [{ name: 'location', label: 'Location', type: 'text', required: true }],
+        outputs: [
+            { name: 'post_id', label: 'Post ID' },
+            { name: 'message', label: 'Message' },
+            { name: 'link', label: 'Link' },
+            { name: 'picture', label: 'Picture' },
+            { name: 'place', label: 'Place' },
+            { name: 'created_time', label: 'Created Time' }
+        ]
+    },
     { id: 'facebook-new-status', name: 'Facebook', type: 'trigger', description: 'New status message by you', icon: 'facebook', color: COLORS['Facebook'], authType: 'OAuth 2.0', configFields: [] },
     { id: 'facebook-new-status-hashtag', name: 'Facebook', type: 'trigger', description: 'New status message by you with hashtag', icon: 'facebook', color: COLORS['Facebook'], authType: 'OAuth 2.0', configFields: [{ name: 'hashtag', label: 'Hashtag', type: 'text', required: true }] },
     { id: 'facebook-new-link', name: 'Facebook', type: 'trigger', description: 'New link post by you', icon: 'facebook', color: COLORS['Facebook'], authType: 'OAuth 2.0', configFields: [] },
@@ -96,7 +131,23 @@ export const TRIGGERS: Plugin[] = [
     // Spotify
     { id: 'spotify-new-followed-show', name: 'Spotify', type: 'trigger', description: 'New followed show', icon: 'music', color: COLORS['Spotify'], authType: 'OAuth 2.0', configFields: [] },
     { id: 'spotify-new-saved-episode', name: 'Spotify', type: 'trigger', description: 'New saved episode', icon: 'music', color: COLORS['Spotify'], authType: 'OAuth 2.0', configFields: [] },
-    { id: 'spotify-new-saved-track', name: 'Spotify', type: 'trigger', description: 'New saved track', icon: 'music', color: COLORS['Spotify'], authType: 'OAuth 2.0', configFields: [] },
+    {
+        id: 'spotify-new-saved-track',
+        name: 'Spotify',
+        type: 'trigger',
+        description: 'New saved track',
+        icon: 'music',
+        color: COLORS['Spotify'],
+        authType: 'OAuth 2.0',
+        configFields: [],
+        outputs: [
+            { name: 'track_name', label: 'Track Name' },
+            { name: 'artist_name', label: 'Artist Name' },
+            { name: 'album_name', label: 'Album Name' },
+            { name: 'track_url', label: 'Track URL' },
+            { name: 'added_at', label: 'Added At' }
+        ]
+    },
     { id: 'spotify-new-show-search', name: 'Spotify', type: 'trigger', description: 'New show from search', icon: 'music', color: COLORS['Spotify'], authType: 'OAuth 2.0', configFields: [{ name: 'query', label: 'Search query', type: 'text', required: true }] },
     { id: 'spotify-recently-played', name: 'Spotify', type: 'trigger', description: 'New recently played track', icon: 'music', color: COLORS['Spotify'], authType: 'OAuth 2.0', configFields: [] },
     { id: 'spotify-new-saved-album', name: 'Spotify', type: 'trigger', description: 'New saved album', icon: 'music', color: COLORS['Spotify'], authType: 'OAuth 2.0', configFields: [] },
@@ -105,10 +156,40 @@ export const TRIGGERS: Plugin[] = [
     { id: 'spotify-new-track-playlist', name: 'Spotify', type: 'trigger', description: 'New track added to a playlist', icon: 'music', color: COLORS['Spotify'], authType: 'OAuth 2.0', configFields: [{ name: 'playlist_id', label: 'Playlist name or ID', type: 'text', required: true }] },
     // WhatsApp
     { id: 'whatsapp-msg-specific', name: 'WhatsApp', type: 'trigger', description: 'Specific message to InOut', icon: 'message-circle', color: COLORS['WhatsApp'], authType: 'OAuth 2.0, API Key', configFields: [{ name: 'message', label: 'Specific message or key phrase', type: 'text', required: true }] },
-    { id: 'whatsapp-msg-any', name: 'WhatsApp', type: 'trigger', description: 'Any message to InOut', icon: 'message-circle', color: COLORS['WhatsApp'], authType: 'OAuth 2.0, API Key', configFields: [] },
+    {
+        id: 'whatsapp-msg-any',
+        name: 'WhatsApp',
+        type: 'trigger',
+        description: 'Any message to InOut',
+        icon: 'message-circle',
+        color: COLORS['WhatsApp'],
+        authType: 'OAuth 2.0, API Key',
+        configFields: [],
+        outputs: [
+            { name: 'message_text', label: 'Message Text' },
+            { name: 'sender', label: 'Sender' },
+            { name: 'timestamp', label: 'Timestamp' }
+        ]
+    },
     // YouTube
     { id: 'youtube-new-video-search', name: 'YouTube', type: 'trigger', description: 'New video from search', icon: 'youtube', color: COLORS['YouTube'], authType: 'OAuth 2.0', configFields: [{ name: 'query', label: 'Search query', type: 'text', required: true }] },
-    { id: 'youtube-new-liked-video', name: 'YouTube', type: 'trigger', description: 'New liked video', icon: 'youtube', color: COLORS['YouTube'], authType: 'OAuth 2.0', configFields: [] },
+    {
+        id: 'youtube-new-liked-video',
+        name: 'YouTube',
+        type: 'trigger',
+        description: 'New liked video',
+        icon: 'youtube',
+        color: COLORS['YouTube'],
+        authType: 'OAuth 2.0',
+        configFields: [],
+        outputs: [
+            { name: 'title', label: 'Title' },
+            { name: 'description', label: 'Description' },
+            { name: 'url', label: 'Video URL' },
+            { name: 'author_name', label: 'Author Name' },
+            { name: 'liked_at', label: 'Liked At' }
+        ]
+    },
     { id: 'youtube-subscribe-channel', name: 'YouTube', type: 'trigger', description: 'You subscribe to a channel', icon: 'youtube', color: COLORS['YouTube'], authType: 'OAuth 2.0', configFields: [] },
     { id: 'youtube-new-video-channel', name: 'YouTube', type: 'trigger', description: 'New video by channel', icon: 'youtube', color: COLORS['YouTube'], authType: 'OAuth 2.0', configFields: [{ name: 'channel_id', label: 'Channel name or ID', type: 'text', required: true }] },
     { id: 'youtube-new-playlist', name: 'YouTube', type: 'trigger', description: 'New playlist', icon: 'youtube', color: COLORS['YouTube'], authType: 'OAuth 2.0', configFields: [] },
@@ -118,14 +199,47 @@ export const TRIGGERS: Plugin[] = [
     { id: 'youtube-membership', name: 'YouTube', type: 'trigger', description: 'New channel membership', icon: 'youtube', color: COLORS['YouTube'], authType: 'OAuth 2.0', configFields: [] },
     { id: 'youtube-super-sticker', name: 'YouTube', type: 'trigger', description: 'New Super Sticker', icon: 'youtube', color: COLORS['YouTube'], authType: 'OAuth 2.0', configFields: [] },
     // Telegram
-    { id: 'telegram-msg-phrase', name: 'Telegram', type: 'trigger', description: 'New message with key phrase to @IFTTT', icon: 'send', color: COLORS['Telegram'], authType: 'Bot Token', configFields: [{ name: 'phrase', label: 'Key phrase', type: 'text', required: true }] },
+    {
+        id: 'telegram-msg-phrase',
+        name: 'Telegram',
+        type: 'trigger',
+        description: 'New message with key phrase to @IFTTT',
+        icon: 'send',
+        color: COLORS['Telegram'],
+        authType: 'Bot Token',
+        configFields: [{ name: 'phrase', label: 'Key phrase', type: 'text', required: true }],
+        outputs: [
+            { name: 'text', label: 'Text' },
+            { name: 'sender_name', label: 'Sender Name' },
+            { name: 'username', label: 'Username' },
+            { name: 'date', label: 'Date' }
+        ]
+    },
     { id: 'telegram-photo', name: 'Telegram', type: 'trigger', description: 'New photo to @IFTTT', icon: 'send', color: COLORS['Telegram'], authType: 'Bot Token', configFields: [] },
     { id: 'telegram-msg-phrase-group', name: 'Telegram', type: 'trigger', description: 'New message with key phrase in a group', icon: 'send', color: COLORS['Telegram'], authType: 'Bot Token', configFields: [{ name: 'phrase', label: 'Key phrase', type: 'text', required: true }] },
     { id: 'telegram-msg-group', name: 'Telegram', type: 'trigger', description: 'New message in a group', icon: 'send', color: COLORS['Telegram'], authType: 'Bot Token', configFields: [] },
     { id: 'telegram-post-channel', name: 'Telegram', type: 'trigger', description: 'New post in your channel', icon: 'send', color: COLORS['Telegram'], authType: 'Bot Token', configFields: [] },
     { id: 'telegram-photo-channel', name: 'Telegram', type: 'trigger', description: 'New photo in your channel', icon: 'send', color: COLORS['Telegram'], authType: 'Bot Token', configFields: [] },
     // Reddit
-    { id: 'reddit-new-post-sub', name: 'Reddit', type: 'trigger', description: 'Any new post in subreddit', icon: 'message-circle', color: COLORS['Reddit'], authType: 'OAuth 2.0', configFields: [{ name: 'subreddit', label: 'Subreddit name', type: 'text', required: true }] },
+    {
+        id: 'reddit-new-post-sub',
+        name: 'Reddit',
+        type: 'trigger',
+        description: 'Any new post in subreddit',
+        icon: 'message-circle',
+        color: COLORS['Reddit'],
+        authType: 'OAuth 2.0',
+        configFields: [{ name: 'subreddit', label: 'Subreddit name', type: 'text', required: true }],
+        outputs: [
+            { name: 'title', label: 'Title' },
+            { name: 'content', label: 'Content' },
+            { name: 'author', label: 'Author' },
+            { name: 'subreddit', label: 'Subreddit' },
+            { name: 'url', label: 'URL' },
+            { name: 'image_url', label: 'Image URL' },
+            { name: 'posted_at', label: 'Posted At' }
+        ]
+    },
     { id: 'reddit-hot-post-sub', name: 'Reddit', type: 'trigger', description: 'New hot post in subreddit', icon: 'message-circle', color: COLORS['Reddit'], authType: 'OAuth 2.0', configFields: [{ name: 'subreddit', label: 'Subreddit name', type: 'text', required: true }] },
     { id: 'reddit-top-post-sub', name: 'Reddit', type: 'trigger', description: 'New top post in subreddit', icon: 'message-circle', color: COLORS['Reddit'], authType: 'OAuth 2.0', configFields: [{ name: 'subreddit', label: 'Subreddit name', type: 'text', required: true }] },
     { id: 'reddit-new-post-search', name: 'Reddit', type: 'trigger', description: 'New post from search', icon: 'message-circle', color: COLORS['Reddit'], authType: 'OAuth 2.0', configFields: [{ name: 'query', label: 'Search query', type: 'text', required: true }] },
@@ -135,7 +249,22 @@ export const TRIGGERS: Plugin[] = [
     { id: 'reddit-downvoted-you', name: 'Reddit', type: 'trigger', description: 'New downvoted post by you', icon: 'message-circle', color: COLORS['Reddit'], authType: 'OAuth 2.0', configFields: [] },
     { id: 'reddit-saved-you', name: 'Reddit', type: 'trigger', description: 'New post saved by you', icon: 'message-circle', color: COLORS['Reddit'], authType: 'OAuth 2.0', configFields: [] },
     // X.com
-    { id: 'x-new-tweet', name: 'X.com', type: 'trigger', description: 'New tweet by you', icon: 'twitter', color: COLORS['X.com'], authType: 'OAuth 2.0, OAuth 1.0a', configFields: [] },
+    {
+        id: 'x-new-tweet',
+        name: 'X.com',
+        type: 'trigger',
+        description: 'New tweet by you',
+        icon: 'twitter',
+        color: COLORS['X.com'],
+        authType: 'OAuth 2.0, OAuth 1.0a',
+        configFields: [],
+        outputs: [
+            { name: 'text', label: 'Tweet Text' },
+            { name: 'link_to_tweet', label: 'Link to Tweet' },
+            { name: 'created_at', label: 'Created At' },
+            { name: 'tweet_embed_code', label: 'Tweet Embed Code' }
+        ]
+    },
     { id: 'x-new-tweet-hashtag', name: 'X.com', type: 'trigger', description: 'New tweet by you with hashtag', icon: 'twitter', color: COLORS['X.com'], authType: 'OAuth 2.0, OAuth 1.0a', configFields: [{ name: 'hashtag', label: 'Hashtag', type: 'text', required: true }] },
     { id: 'x-new-tweet-area', name: 'X.com', type: 'trigger', description: 'New tweet by you in area', icon: 'twitter', color: COLORS['X.com'], authType: 'OAuth 2.0, OAuth 1.0a', configFields: [{ name: 'area', label: 'Area/location', type: 'text', required: true }] },
     { id: 'x-mention', name: 'X.com', type: 'trigger', description: 'New mention of you', icon: 'twitter', color: COLORS['X.com'], authType: 'OAuth 2.0, OAuth 1.0a', configFields: [] },
@@ -149,22 +278,85 @@ export const TRIGGERS: Plugin[] = [
     { id: 'github-notification-repo', name: 'GitHub', type: 'trigger', description: 'Any new notification from a repository', icon: 'github', color: COLORS['GitHub'], authType: 'OAuth 2.0, Personal Access Token', configFields: [{ name: 'repo', label: 'Repository', type: 'text', required: true }] },
     { id: 'github-repo-event', name: 'GitHub', type: 'trigger', description: 'Any new repository event', icon: 'github', color: COLORS['GitHub'], authType: 'OAuth 2.0, Personal Access Token', configFields: [{ name: 'repo', label: 'Repository', type: 'text', required: true }] },
     { id: 'github-release', name: 'GitHub', type: 'trigger', description: 'Any new release', icon: 'github', color: COLORS['GitHub'], authType: 'OAuth 2.0, Personal Access Token', configFields: [{ name: 'repo', label: 'Repository', type: 'text', required: true }] },
-    { id: 'github-commit', name: 'GitHub', type: 'trigger', description: 'Any new commit', icon: 'github', color: COLORS['GitHub'], authType: 'OAuth 2.0, Personal Access Token', configFields: [{ name: 'repo', label: 'Repository', type: 'text', required: true }] },
+    {
+        id: 'github-commit',
+        name: 'GitHub',
+        type: 'trigger',
+        description: 'Any new commit',
+        icon: 'github',
+        color: COLORS['GitHub'],
+        authType: 'OAuth 2.0, Personal Access Token',
+        configFields: [{ name: 'repo', label: 'Repository', type: 'text', required: true }],
+        outputs: [
+            { name: 'commit_hash', label: 'Commit Hash' },
+            { name: 'commit_message', label: 'Commit Message' },
+            { name: 'author_name', label: 'Author Name' },
+            { name: 'author_email', label: 'Author Email' },
+            { name: 'timestamp', label: 'Timestamp' },
+            { name: 'url', label: 'Commit URL' }
+        ]
+    },
     { id: 'github-notification-any', name: 'GitHub', type: 'trigger', description: 'Any new notification', icon: 'github', color: COLORS['GitHub'], authType: 'OAuth 2.0, Personal Access Token', configFields: [] },
     { id: 'github-gist', name: 'GitHub', type: 'trigger', description: 'Any new Gist', icon: 'github', color: COLORS['GitHub'], authType: 'OAuth 2.0, Personal Access Token', configFields: [] },
-    { id: 'github-issue', name: 'GitHub', type: 'trigger', description: 'Any new issue', icon: 'github', color: COLORS['GitHub'], authType: 'OAuth 2.0, Personal Access Token', configFields: [] },
+    {
+        id: 'github-issue',
+        name: 'GitHub',
+        type: 'trigger',
+        description: 'Any new issue',
+        icon: 'github',
+        color: COLORS['GitHub'],
+        authType: 'OAuth 2.0, Personal Access Token',
+        configFields: [],
+        outputs: [
+            { name: 'issue_number', label: 'Issue Number' },
+            { name: 'issue_title', label: 'Issue Title' },
+            { name: 'issue_body', label: 'Issue Body' },
+            { name: 'issue_url', label: 'Issue URL' },
+            { name: 'user_login', label: 'User Login' },
+            { name: 'created_at', label: 'Created At' }
+        ]
+    },
     { id: 'github-closed-issue', name: 'GitHub', type: 'trigger', description: 'Any new closed issue', icon: 'github', color: COLORS['GitHub'], authType: 'OAuth 2.0, Personal Access Token', configFields: [] },
     { id: 'github-issue-assigned', name: 'GitHub', type: 'trigger', description: 'New issue assigned to you', icon: 'github', color: COLORS['GitHub'], authType: 'OAuth 2.0, Personal Access Token', configFields: [] },
     { id: 'github-repo-user', name: 'GitHub', type: 'trigger', description: 'New repository by user/org', icon: 'github', color: COLORS['GitHub'], authType: 'OAuth 2.0, Personal Access Token', configFields: [{ name: 'username', label: 'Username or organization', type: 'text', required: true }] },
     { id: 'github-pr', name: 'GitHub', type: 'trigger', description: 'New pull request', icon: 'github', color: COLORS['GitHub'], authType: 'OAuth 2.0, Personal Access Token', configFields: [{ name: 'repo', label: 'Repository', type: 'text', required: true }] },
     // Date & Time (using timer_trigger ID for consistency if desired, but updating to match requested list)
-    { id: 'datetime-every-day', name: 'Date & Time', type: 'trigger', description: 'Every day at', icon: 'clock', color: COLORS['Date & Time'], authType: 'None', configFields: [{ name: 'time', label: 'Specific time', type: 'text', required: true }] },
+    {
+        id: 'datetime-every-day',
+        name: 'Date & Time',
+        type: 'trigger',
+        description: 'Every day at',
+        icon: 'clock',
+        color: COLORS['Date & Time'],
+        authType: 'None',
+        configFields: [{ name: 'time', label: 'Specific time', type: 'text', required: true }],
+        outputs: [
+            { name: 'check_time', label: 'Check Time' }
+        ]
+    },
     { id: 'datetime-every-hour', name: 'Date & Time', type: 'trigger', description: 'Every hour at', icon: 'clock', color: COLORS['Date & Time'], authType: 'None', configFields: [{ name: 'time', label: 'Specific time', type: 'text', required: true }] },
     { id: 'datetime-every-week', name: 'Date & Time', type: 'trigger', description: 'Every day of the week at', icon: 'clock', color: COLORS['Date & Time'], authType: 'None', configFields: [{ name: 'day', label: 'Day of week', type: 'text', required: true }, { name: 'time', label: 'Time', type: 'text', required: true }] },
     { id: 'datetime-every-month', name: 'Date & Time', type: 'trigger', description: 'Every month on the', icon: 'clock', color: COLORS['Date & Time'], authType: 'None', configFields: [{ name: 'day', label: 'Day of month', type: 'text', required: true }, { name: 'time', label: 'Time', type: 'text', required: true }] },
     { id: 'datetime-every-year', name: 'Date & Time', type: 'trigger', description: 'Every year on', icon: 'clock', color: COLORS['Date & Time'], authType: 'None', configFields: [{ name: 'date', label: 'Date', type: 'text', required: true }, { name: 'time', label: 'Time', type: 'text', required: true }] },
     // SoundCloud
-    { id: 'soundcloud-new-track', name: 'SoundCloud', type: 'trigger', description: 'Any new public track', icon: 'music', color: COLORS['SoundCloud'], authType: 'OAuth 2.0', configFields: [] },
+    {
+        id: 'soundcloud-new-track',
+        name: 'SoundCloud',
+        type: 'trigger',
+        description: 'Any new public track',
+        icon: 'music',
+        color: COLORS['SoundCloud'],
+        authType: 'OAuth 2.0',
+        configFields: [],
+        outputs: [
+            { name: 'title', label: 'Title' },
+            { name: 'url', label: 'URL' },
+            { name: 'artwork_url', label: 'Artwork URL' },
+            { name: 'description', label: 'Description' },
+            { name: 'genre', label: 'Genre' },
+            { name: 'created_at', label: 'Created At' }
+        ]
+    },
     { id: 'soundcloud-new-like', name: 'SoundCloud', type: 'trigger', description: 'New public like', icon: 'music', color: COLORS['SoundCloud'], authType: 'OAuth 2.0', configFields: [] },
     { id: 'soundcloud-new-track-following', name: 'SoundCloud', type: 'trigger', description: 'New public track by anyone you follow', icon: 'music', color: COLORS['SoundCloud'], authType: 'OAuth 2.0', configFields: [] },
     { id: 'soundcloud-new-track-search', name: 'SoundCloud', type: 'trigger', description: 'New track from search', icon: 'music', color: COLORS['SoundCloud'], authType: 'OAuth 2.0', configFields: [{ name: 'query', label: 'Search query', type: 'text', required: true }] },
@@ -172,10 +364,44 @@ export const TRIGGERS: Plugin[] = [
     { id: 'soundcloud-new-playlist', name: 'SoundCloud', type: 'trigger', description: 'New playlist created', icon: 'music', color: COLORS['SoundCloud'], authType: 'OAuth 2.0', configFields: [] },
     { id: 'soundcloud-new-track-playlist', name: 'SoundCloud', type: 'trigger', description: 'New track in a playlist', icon: 'music', color: COLORS['SoundCloud'], authType: 'OAuth 2.0', configFields: [{ name: 'playlist', label: 'Playlist', type: 'text', required: true }] },
     // Email
-    { id: 'email-send-ifttt', name: 'Email', type: 'trigger', description: 'Send IFTTT any email', icon: 'mail', color: COLORS['Email'], authType: 'Email Verification, SMTP', configFields: [] },
+    {
+        id: 'email-send-ifttt',
+        name: 'Email',
+        type: 'trigger',
+        description: 'Send IFTTT any email',
+        icon: 'mail',
+        color: COLORS['Email'],
+        authType: 'Email Verification, SMTP',
+        configFields: [],
+        outputs: [
+            { name: 'subject', label: 'Subject' },
+            { name: 'body', label: 'Body' },
+            { name: 'from', label: 'From' },
+            { name: 'received_at', label: 'Received At' },
+            { name: 'attachment_url', label: 'Attachment URL' }
+        ]
+    },
     { id: 'email-send-ifttt-tagged', name: 'Email', type: 'trigger', description: 'Send IFTTT an email tagged', icon: 'mail', color: COLORS['Email'], authType: 'Email Verification, SMTP', configFields: [{ name: 'tag', label: 'Hashtag in subject', type: 'text', required: true }] },
     // Fitbit
-    { id: 'fitbit-daily-summary', name: 'Fitbit', type: 'trigger', description: 'Daily activity summary', icon: 'activity', color: COLORS['Fitbit'], authType: 'OAuth 2.0', configFields: [] },
+    {
+        id: 'fitbit-daily-summary',
+        name: 'Fitbit',
+        type: 'trigger',
+        description: 'Daily activity summary',
+        icon: 'activity',
+        color: COLORS['Fitbit'],
+        authType: 'OAuth 2.0',
+        configFields: [],
+        outputs: [
+            { name: 'date', label: 'Date' },
+            { name: 'total_steps', label: 'Total Steps' },
+            { name: 'calories_burned', label: 'Calories Burned' },
+            { name: 'distance', label: 'Distance' },
+            { name: 'floors', label: 'Floors' },
+            { name: 'sedentary_minutes', label: 'Sedentary Minutes' },
+            { name: 'very_active_minutes', label: 'Very Active Minutes' }
+        ]
+    },
     { id: 'fitbit-daily-steps', name: 'Fitbit', type: 'trigger', description: 'Daily step goal achieved', icon: 'activity', color: COLORS['Fitbit'], authType: 'OAuth 2.0', configFields: [] },
     { id: 'fitbit-daily-distance', name: 'Fitbit', type: 'trigger', description: 'Daily distance goal achieved', icon: 'activity', color: COLORS['Fitbit'], authType: 'OAuth 2.0', configFields: [] },
     { id: 'fitbit-daily-floors', name: 'Fitbit', type: 'trigger', description: 'Daily floors climbed goal achieved', icon: 'activity', color: COLORS['Fitbit'], authType: 'OAuth 2.0', configFields: [] },
@@ -187,7 +413,22 @@ export const TRIGGERS: Plugin[] = [
     { id: 'fitbit-sleep-above', name: 'Fitbit', type: 'trigger', description: 'Sleep duration above', icon: 'activity', color: COLORS['Fitbit'], authType: 'OAuth 2.0', configFields: [{ name: 'hours', label: 'Target hours', type: 'text', required: true }] },
     { id: 'fitbit-sleep-below', name: 'Fitbit', type: 'trigger', description: 'Sleep duration below', icon: 'activity', color: COLORS['Fitbit'], authType: 'OAuth 2.0', configFields: [{ name: 'hours', label: 'Target hours', type: 'text', required: true }] },
     // Google Drive
-    { id: 'drive-new-file', name: 'Google Drive', type: 'trigger', description: 'New file in your folder', icon: 'hard-drive', color: COLORS['Google Drive'], authType: 'OAuth 2.0', configFields: [{ name: 'folder', label: 'Folder path', type: 'text', required: true }] },
+    {
+        id: 'drive-new-file',
+        name: 'Google Drive',
+        type: 'trigger',
+        description: 'New file in your folder',
+        icon: 'hard-drive',
+        color: COLORS['Google Drive'],
+        authType: 'OAuth 2.0',
+        configFields: [{ name: 'folder', label: 'Folder path', type: 'text', required: true }],
+        outputs: [
+            { name: 'filename', label: 'Filename' },
+            { name: 'file_url', label: 'File URL' },
+            { name: 'mime_type', label: 'Mime Type' },
+            { name: 'created_date', label: 'Created Date' }
+        ]
+    },
     { id: 'drive-new-file-search', name: 'Google Drive', type: 'trigger', description: 'New file from search in your folder', icon: 'hard-drive', color: COLORS['Google Drive'], authType: 'OAuth 2.0', configFields: [{ name: 'query', label: 'Search query', type: 'text', required: true }, { name: 'folder', label: 'Folder path', type: 'text', required: true }] },
     { id: 'drive-new-photo', name: 'Google Drive', type: 'trigger', description: 'New photo in your folder', icon: 'hard-drive', color: COLORS['Google Drive'], authType: 'OAuth 2.0', configFields: [{ name: 'folder', label: 'Folder path', type: 'text', required: true }] },
     { id: 'drive-new-video', name: 'Google Drive', type: 'trigger', description: 'New video in your folder', icon: 'hard-drive', color: COLORS['Google Drive'], authType: 'OAuth 2.0', configFields: [{ name: 'folder', label: 'Folder path', type: 'text', required: true }] },
@@ -195,19 +436,82 @@ export const TRIGGERS: Plugin[] = [
     // Google Sheets
     { id: 'sheets-new-sheet', name: 'Google Sheets', type: 'trigger', description: 'New spreadsheet added to folder', icon: 'file-text', color: COLORS['Google Sheets'], authType: 'OAuth 2.0', configFields: [{ name: 'folder', label: 'Folder path', type: 'text', required: true }] },
     { id: 'sheets-new-worksheet', name: 'Google Sheets', type: 'trigger', description: 'New worksheet in spreadsheet', icon: 'file-text', color: COLORS['Google Sheets'], authType: 'OAuth 2.0', configFields: [{ name: 'spreadsheet', label: 'Spreadsheet ID', type: 'text', required: true }] },
-    { id: 'sheets-new-row', name: 'Google Sheets', type: 'trigger', description: 'New row added to spreadsheet', icon: 'file-text', color: COLORS['Google Sheets'], authType: 'OAuth 2.0', configFields: [{ name: 'spreadsheet', label: 'Spreadsheet ID', type: 'text', required: true }] },
+    {
+        id: 'sheets-new-row',
+        name: 'Google Sheets',
+        type: 'trigger',
+        description: 'New row added to spreadsheet',
+        icon: 'file-text',
+        color: COLORS['Google Sheets'],
+        authType: 'OAuth 2.0',
+        configFields: [{ name: 'spreadsheet', label: 'Spreadsheet ID', type: 'text', required: true }],
+        outputs: [
+            { name: 'column_a', label: 'Column A' },
+            { name: 'column_b', label: 'Column B' },
+            { name: 'column_c', label: 'Column C' },
+            { name: 'row_number', label: 'Row Number' }
+        ]
+    },
     { id: 'sheets-cell-updated', name: 'Google Sheets', type: 'trigger', description: 'Cell updated in spreadsheet', icon: 'file-text', color: COLORS['Google Sheets'], authType: 'OAuth 2.0', configFields: [{ name: 'spreadsheet', label: 'Spreadsheet ID', type: 'text', required: true }] },
     // Threads
-    { id: 'threads-new-post', name: 'Threads', type: 'trigger', description: 'Any new post by you', icon: 'twitter', color: COLORS['Threads'], authType: 'OAuth 2.0', configFields: [] },
+    {
+        id: 'threads-new-post',
+        name: 'Threads',
+        type: 'trigger',
+        description: 'Any new post by you',
+        icon: 'twitter',
+        color: COLORS['Threads'],
+        authType: 'OAuth 2.0',
+        configFields: [],
+        outputs: [
+            { name: 'post_id', label: 'Post ID' },
+            { name: 'text', label: 'Text' },
+            { name: 'link', label: 'Link' },
+            { name: 'created_at', label: 'Created At' }
+        ]
+    },
     { id: 'threads-new-text', name: 'Threads', type: 'trigger', description: 'New text post by you', icon: 'twitter', color: COLORS['Threads'], authType: 'OAuth 2.0', configFields: [] },
     { id: 'threads-new-image', name: 'Threads', type: 'trigger', description: 'New image post by you', icon: 'twitter', color: COLORS['Threads'], authType: 'OAuth 2.0', configFields: [] },
     { id: 'threads-new-video', name: 'Threads', type: 'trigger', description: 'New video post by you', icon: 'twitter', color: COLORS['Threads'], authType: 'OAuth 2.0', configFields: [] },
     { id: 'threads-new-carousel', name: 'Threads', type: 'trigger', description: 'New carousel post by you', icon: 'twitter', color: COLORS['Threads'], authType: 'OAuth 2.0', configFields: [] },
     // RSS Feed
-    { id: 'rss-new-item', name: 'RSS Feed', type: 'trigger', description: 'New feed item', icon: 'rss', color: COLORS['RSS Feed'], authType: 'None', configFields: [{ name: 'url', label: 'Feed URL', type: 'text', required: true }] },
+    {
+        id: 'rss-new-item',
+        name: 'RSS Feed',
+        type: 'trigger',
+        description: 'New feed item',
+        icon: 'rss',
+        color: COLORS['RSS Feed'],
+        authType: 'None',
+        configFields: [{ name: 'url', label: 'Feed URL', type: 'text', required: true }],
+        outputs: [
+            { name: 'entry_title', label: 'Entry Title' },
+            { name: 'entry_url', label: 'Entry URL' },
+            { name: 'entry_author', label: 'Entry Author' },
+            { name: 'entry_content', label: 'Entry Content' },
+            { name: 'entry_published', label: 'Entry Published' }
+        ]
+    },
     { id: 'rss-new-item-matches', name: 'RSS Feed', type: 'trigger', description: 'New feed item matches', icon: 'rss', color: COLORS['RSS Feed'], authType: 'None', configFields: [{ name: 'url', label: 'Feed URL', type: 'text', required: true }, { name: 'keyword', label: 'Keyword or phrase', type: 'text', required: true }] },
     // Google Calendar
-    { id: 'calendar-new-event', name: 'Google Calendar', type: 'trigger', description: 'New event added', icon: 'calendar', color: COLORS['Google Calendar'], authType: 'OAuth 2.0', configFields: [] },
+    {
+        id: 'calendar-new-event',
+        name: 'Google Calendar',
+        type: 'trigger',
+        description: 'New event added',
+        icon: 'calendar',
+        color: COLORS['Google Calendar'],
+        authType: 'OAuth 2.0',
+        configFields: [],
+        outputs: [
+            { name: 'event_title', label: 'Event Title' },
+            { name: 'description', label: 'Description' },
+            { name: 'location', label: 'Location' },
+            { name: 'starts', label: 'Starts' },
+            { name: 'ends', label: 'Ends' },
+            { name: 'event_url', label: 'Event URL' }
+        ]
+    },
     { id: 'calendar-new-event-search', name: 'Google Calendar', type: 'trigger', description: 'New event from search added', icon: 'calendar', color: COLORS['Google Calendar'], authType: 'OAuth 2.0', configFields: [{ name: 'query', label: 'Search query', type: 'text', required: true }] },
     { id: 'calendar-event-starts', name: 'Google Calendar', type: 'trigger', description: 'Any event starts', icon: 'calendar', color: COLORS['Google Calendar'], authType: 'OAuth 2.0', configFields: [] },
     { id: 'calendar-event-search-starts', name: 'Google Calendar', type: 'trigger', description: 'Event from search starts', icon: 'calendar', color: COLORS['Google Calendar'], authType: 'OAuth 2.0', configFields: [{ name: 'query', label: 'Search query', type: 'text', required: true }] },
@@ -215,10 +519,40 @@ export const TRIGGERS: Plugin[] = [
     { id: 'calendar-event-search-ends', name: 'Google Calendar', type: 'trigger', description: 'Event from search ends', icon: 'calendar', color: COLORS['Google Calendar'], authType: 'OAuth 2.0', configFields: [{ name: 'query', label: 'Search query', type: 'text', required: true }] },
     { id: 'calendar-respond-event', name: 'Google Calendar', type: 'trigger', description: 'You respond to an event invite', icon: 'calendar', color: COLORS['Google Calendar'], authType: 'OAuth 2.0', configFields: [] },
     // Webhooks
-    { id: 'webhook-json', name: 'Webhooks', type: 'trigger', description: 'Receive a web request with a JSON payload', icon: 'webhook', color: COLORS['Webhooks'], authType: 'None, Secret Key', configFields: [] },
+    {
+        id: 'webhook-json',
+        name: 'Webhooks',
+        type: 'trigger',
+        description: 'Receive a web request with a JSON payload',
+        icon: 'webhook',
+        color: COLORS['Webhooks'],
+        authType: 'None, Secret Key',
+        configFields: [],
+        outputs: [
+            { name: 'value1', label: 'Value 1' },
+            { name: 'value2', label: 'Value 2' },
+            { name: 'value3', label: 'Value 3' },
+            { name: 'json_payload', label: 'JSON Payload' }
+        ]
+    },
     { id: 'webhook-request', name: 'Webhooks', type: 'trigger', description: 'Receive a web request', icon: 'webhook', color: COLORS['Webhooks'], authType: 'None, Secret Key', configFields: [] },
     // Instagram
-    { id: 'instagram-new-photo', name: 'Instagram', type: 'trigger', description: 'Any new photo by you', icon: 'camera', color: COLORS['Instagram'], authType: 'OAuth 2.0', configFields: [] },
+    {
+        id: 'instagram-new-photo',
+        name: 'Instagram',
+        type: 'trigger',
+        description: 'Any new photo by you',
+        icon: 'camera',
+        color: COLORS['Instagram'],
+        authType: 'OAuth 2.0',
+        configFields: [],
+        outputs: [
+            { name: 'caption', label: 'Caption' },
+            { name: 'url', label: 'URL' },
+            { name: 'source_url', label: 'Source URL' },
+            { name: 'created_at', label: 'Created At' }
+        ]
+    },
     { id: 'instagram-new-photo-tag', name: 'Instagram', type: 'trigger', description: 'New photo by you with specific hashtag', icon: 'camera', color: COLORS['Instagram'], authType: 'OAuth 2.0', configFields: [{ name: 'hashtag', label: 'Hashtag', type: 'text', required: true }] },
     { id: 'instagram-new-video', name: 'Instagram', type: 'trigger', description: 'Any new video by you', icon: 'camera', color: COLORS['Instagram'], authType: 'OAuth 2.0', configFields: [] },
     { id: 'instagram-new-video-tag', name: 'Instagram', type: 'trigger', description: 'New video by you with specific hashtag', icon: 'camera', color: COLORS['Instagram'], authType: 'OAuth 2.0', configFields: [{ name: 'hashtag', label: 'Hashtag', type: 'text', required: true }] },
