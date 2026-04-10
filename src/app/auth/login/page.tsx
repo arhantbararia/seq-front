@@ -7,9 +7,11 @@ import { Input } from "@/components/auth/Input";
 import { Button } from "@/components/auth/Button";
 import { SocialAuth } from "@/components/auth/SocialAuth";
 import { useAuth } from "@/hooks/useAuth";
+import { useSearchParams } from "next/navigation";
 
 export default function LoginPage() {
     const { login } = useAuth();
+    const searchParams = useSearchParams();
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState("");
     const [formData, setFormData] = useState({
@@ -23,32 +25,21 @@ export default function LoginPage() {
         setIsLoading(true);
 
         try {
-            const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000/api/v1';
-            const res = await fetch(`${backendUrl}/auth/login`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    // The backend expects specific fields. Assuming standard email/password here.
-                    // Adjust if backend expects x-www-form-urlencoded (OAuth2 standard) 
-                    // or json. Based on user prompt: POST /auth/login
-                    email: formData.email,
-                    password: formData.password,
-                }),
-            });
-
-            if (!res.ok) {
-                const data = await res.json();
-                throw new Error(data.detail || "Login failed");
-            }
-
-            const data = await res.json();
-            // Expecting { access_token: "...", token_type: "bearer" }
-            login(data.access_token);
-        } catch (err: unknown) {
-            if (err instanceof Error) {
-                setError(err.message);
+            const next = searchParams.get('next') || undefined;
+            const state = searchParams.get('state');
+            
+            // Build redirect URL if state is present
+            const redirectUrl = (next && state) ? `${next}?state=${state}` : next;
+            
+            await login(formData.email, formData.password, redirectUrl);
+        } catch (err: any) {
+            const detail = err.response?.data?.detail;
+            if (Array.isArray(detail)) {
+                setError(detail[0].msg);
+            } else if (typeof detail === 'string') {
+                setError(detail);
             } else {
-                setError("An unknown error occurred");
+                setError(err.message || "An unknown error occurred");
             }
         } finally {
             setIsLoading(false);

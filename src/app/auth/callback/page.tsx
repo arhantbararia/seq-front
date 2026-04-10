@@ -8,17 +8,18 @@ import { Loader2 } from "lucide-react";
 function CallbackContent() {
     const searchParams = useSearchParams();
     const router = useRouter();
-    const { login } = useAuth();
+    const { loginWithToken } = useAuth();
 
     useEffect(() => {
         const token = searchParams.get("token");
+        const refreshToken = searchParams.get("refresh_token") || undefined;
         if (token) {
-            login(token);
+            loginWithToken(token, refreshToken);
         } else {
             // Handle error or missing token
             router.push("/auth/login?error=InvalidCallback");
         }
-    }, [searchParams, login, router]);
+    }, [searchParams, loginWithToken, router]);
 
     return (
         <div className="flex flex-col items-center justify-center space-y-4">

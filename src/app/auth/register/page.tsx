@@ -9,7 +9,7 @@ import { SocialAuth } from "@/components/auth/SocialAuth";
 import { useAuth } from "@/hooks/useAuth";
 
 export default function RegisterPage() {
-    const { login } = useAuth();
+    const { register } = useAuth();
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState("");
     const [formData, setFormData] = useState({
@@ -30,53 +30,15 @@ export default function RegisterPage() {
         setIsLoading(true);
 
         try {
-            const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000/api/v1';
-            const res = await fetch(`${backendUrl}/auth/register`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    email: formData.email,
-                    password: formData.password,
-                }),
-            });
-
-            if (!res.ok) {
-                const data = await res.json();
-                throw new Error(data.detail || "Registration failed");
-            }
-
-            const data = await res.json();
-            // If registration returns a token, login immediately.
-            // Otherwise, redirect to login (or login automatically if flow allows)
-            if (data.access_token) {
-                login(data.access_token);
+            await register(formData.email, formData.password);
+        } catch (err: any) {
+            const detail = err.response?.data?.detail;
+            if (Array.isArray(detail)) {
+                setError(detail[0].msg);
+            } else if (typeof detail === 'string') {
+                setError(detail);
             } else {
-                // Fallback or specific message
-                // For this task, assuming we want to get them in ASAP, but if backend
-                // doesn't return token on register, we might need to login manually.
-                // Let's assume for now we might need to login after register if no token.
-                // Attempt auto-login if no token provided but registration was successful
-                const loginRes = await fetch(`${backendUrl}/auth/login`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        username: formData.email,
-                        password: formData.password,
-                    })
-                });
-
-                const loginData = await loginRes.json();
-                if (loginRes.ok && loginData.access_token) {
-                    login(loginData.access_token);
-                } else {
-                    window.location.href = '/auth/login?registered=true';
-                }
-            }
-        } catch (err: unknown) {
-            if (err instanceof Error) {
-                setError(err.message);
-            } else {
-                setError("An unknown error occurred");
+                setError(err.message || "An unknown error occurred");
             }
         } finally {
             setIsLoading(false);

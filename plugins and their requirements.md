@@ -1,5 +1,34 @@
 **Actions**
 
+
+
+
+
+- plugin-service-provider: Spotify
+  Auth: OAuth 2.0
+  function: Add track to playback queue
+  required_config_data: Track (name/ID)
+
+- plugin-service-provider: Spotify
+  Auth: OAuth 2.0
+  function: Add track to a playlist by TrackID
+  required_config_data: Track ID, Playlist ID
+
+- plugin-service-provider: Spotify
+  Auth: OAuth 2.0
+  function: Save a track
+  required_config_data: Track (search query)
+
+- plugin-service-provider: Spotify
+  Auth: OAuth 2.0
+  function: Follow a playlist
+  required_config_data: Playlist ID
+
+- plugin-service-provider: Spotify
+  Auth: OAuth 2.0
+  function: Add track to a playlist
+  required_config_data: Track (search query), Playlist ID
+
 - plugin-service-provider: Threads
   Auth: OAuth 2.0  
   function: Create a text post  

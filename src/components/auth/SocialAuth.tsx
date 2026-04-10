@@ -5,10 +5,8 @@ import { Button } from "./Button";
 
 export function SocialAuth() {
     const handleGoogleLogin = () => {
-        // Redirect to backend Google auth endpoint
-        // Using environment variable safely
-        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000/api/v1';
-        window.location.href = `${backendUrl}/auth/google/login`;
+        const backendUrl = (process.env.NEXT_PUBLIC_BACKEND_URL || '').replace(/\/api\/v1\/?$/, '');
+        window.location.href = `${backendUrl}/api/v1/auth/google/login`;
     };
 
     return (

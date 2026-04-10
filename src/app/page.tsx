@@ -1,20 +1,28 @@
 'use client';
 
-import { ALL_PLUGINS } from "@/lib/mockData";
-import { PluginCard } from "@/components/PluginCard";
+import { useEffect, useState } from "react";
+import { PluginProviderRead, PluginCard } from "@/components/PluginCard";
+import { httpClient } from "@/lib/httpClient";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
-
-
-
 export default function Home() {
+  const [plugins, setPlugins] = useState<PluginProviderRead[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    httpClient.get('/api/v1/plugins/providers')
+      .then(res => setPlugins(res.data))
+      .catch(err => console.error("Failed to fetch plugins", err))
+      .finally(() => setLoading(false));
+  }, []);
+
   return (
-    <div className="flex flex-col gap-20 pb-20 max-w-7xl mx-auto relative">
+    <div className="flex flex-col gap-20 pb-20 max-w-7xl mx-auto relative mt-24">
 
       {/* Hero Section */}
-      <section className="flex flex-col items-center text-center gap-6 mt-10 md:mt-20">
+      <section className="flex flex-col items-center text-center gap-6 mt-10 md:mt-20 px-4">
         <motion.h1
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -56,23 +64,31 @@ export default function Home() {
 
       {/* Plugins Grid */}
       <section>
-        <div className="flex justify-between items-end mb-8 px-4">
+        <div className="flex justify-between items-end mb-8 px-4 mt-12">
           <h2 className="text-3xl font-bold tracking-tight">Available Plugins</h2>
-          <span className="text-zinc-500">and many more...</span>
+          {!loading && <span className="text-zinc-500 hidden sm:block">and many more...</span>}
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 px-4">
-          {Array.from(new Map(ALL_PLUGINS.map(p => [p.name, p])).values()).map((plugin, index) => (
-            <motion.div
-              key={plugin.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 * index }}
-            >
-              <PluginCard plugin={plugin} />
-            </motion.div>
-          ))}
-        </div>
+        {loading ? (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 px-4 opacity-50">
+            {Array.from({ length: 8 }).map((_, idx) => (
+              <div key={idx} className="bg-zinc-100 dark:bg-zinc-800 h-[150px] rounded-3xl animate-pulse" />
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 px-4">
+            {plugins.map((plugin, index) => (
+              <motion.div
+                key={plugin.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.05 * index }}
+              >
+                <PluginCard plugin={plugin} />
+              </motion.div>
+            ))}
+          </div>
+        )}
       </section>
     </div>
   );

@@ -1,15 +1,16 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
-import { TRIGGERS, ACTIONS, Plugin } from "@/lib/mockData";
-import { PluginCard } from "@/components/PluginCard";
+import { useState, useRef, useEffect, Suspense } from 'react';
+import { PluginCard, PluginProviderRead } from "@/components/PluginCard";
 import { Button } from "@/components/ui/button";
 import { ConfigForm } from "@/components/ConfigForm";
-import { createWorkflow, WorkflowCreate } from "@/lib/api";
-import { motion, AnimatePresence } from "framer-motion";
-import { ChevronRight, ChevronLeft, Check, Zap, Play, Loader2, Link2 } from "lucide-react";
+import { PluginAuthModal } from "@/components/PluginAuthModal";
+import { httpClient } from "@/lib/httpClient";
+import { useAuth } from "@/context/AuthContext";
+import { motion } from "framer-motion";
+import { ChevronLeft, Check, Zap, Play, Loader2, Link2 } from "lucide-react";
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { cn } from "@/lib/utils";
 
 type ViewState =
@@ -22,39 +23,107 @@ type ViewState =
     | 'action-config'
     | 'success';
 
-export default function CreatePage() {
+interface PluginCapabilityRead {
+    unique_key: string;
+    name: string;
+    description: string | null;
+    component_type: string;
+    provider: PluginProviderRead;
+    auth: Record<string, any>;
+    config_fields: any[];
+    outputs: any[];
+}
+
+function CreatePageInternal() {
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const { user, isAuthenticated } = useAuth();
     const actionSectionRef = useRef<HTMLDivElement>(null);
+
+    // Data State
+    const [providers, setProviders] = useState<PluginProviderRead[]>([]);
+    const [triggers, setTriggers] = useState<PluginCapabilityRead[]>([]);
+    const [actions, setActions] = useState<PluginCapabilityRead[]>([]);
+    const [accounts, setAccounts] = useState<string[]>([]); // Connected provider_ids
+    const [dataLoading, setDataLoading] = useState(true);
 
     // View State
     const [view, setView] = useState<ViewState>('root');
 
     // Trigger State
-    const [selectedTriggerProvider, setSelectedTriggerProvider] = useState<string | null>(null);
-    const [selectedTrigger, setSelectedTrigger] = useState<Plugin | null>(null);
+    const [selectedTriggerProvider, setSelectedTriggerProvider] = useState<PluginProviderRead | null>(null);
+    const [selectedTrigger, setSelectedTrigger] = useState<PluginCapabilityRead | null>(null);
     const [triggerConfig, setTriggerConfig] = useState<Record<string, string>>({});
-    const [triggerAuthenticated, setTriggerAuthenticated] = useState(false);
-    const [isTriggerAuthenticating, setIsTriggerAuthenticating] = useState(false);
 
     // Action State
-    const [selectedActionProvider, setSelectedActionProvider] = useState<string | null>(null);
-    const [selectedAction, setSelectedAction] = useState<Plugin | null>(null);
+    const [selectedActionProvider, setSelectedActionProvider] = useState<PluginProviderRead | null>(null);
+    const [selectedAction, setSelectedAction] = useState<PluginCapabilityRead | null>(null);
     const [actionConfig, setActionConfig] = useState<Record<string, string>>({});
-    const [actionAuthenticated, setActionAuthenticated] = useState(false);
-    const [isActionAuthenticating, setIsActionAuthenticating] = useState(false);
 
     // Global State
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    // Helpers
-    const getUniqueProviders = (plugins: Plugin[]) => {
-        return Array.from(new Map(plugins.map(p => [p.name, p])).values());
-    };
+    // Auth Modal State
+    const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+    const [authModalProvider, setAuthModalProvider] = useState<PluginProviderRead | null>(null);
 
-    const getPluginsByProvider = (plugins: Plugin[], providerName: string) => {
-        return plugins.filter(p => p.name === providerName);
-    };
+    useEffect(() => {
+        const loadData = async () => {
+            try {
+                const [provRes, trigRes, actRes] = await Promise.all([
+                    httpClient.get('/api/v1/plugins/providers'),
+                    httpClient.get('/api/v1/triggers'),
+                    httpClient.get('/api/v1/actions')
+                ]);
+                setProviders(provRes.data);
+                const fetchedTriggers = trigRes.data;
+                const fetchedActions = actRes.data;
+                setTriggers(fetchedTriggers);
+                setActions(fetchedActions);
+
+                if (isAuthenticated) {
+                    const accRes = await httpClient.get('/api/v1/plugins/accounts');
+                    const connectedProviderIds = accRes.data.map((a: any) => a.provider_id);
+                    setAccounts(connectedProviderIds);
+                }
+
+                // Check for restored state from sessionStorage
+                if (searchParams.get('state') === 'restored') {
+                    const saved = sessionStorage.getItem('pendingWorkflowCreate');
+                    if (saved) {
+                        const { triggerProvider, triggerCap, triggerConf, actionProvider, actionCap, actionConf } = JSON.parse(saved);
+                        if (triggerProvider) setSelectedTriggerProvider(triggerProvider);
+                        if (triggerCap) setSelectedTrigger(triggerCap);
+                        if (triggerConf) setTriggerConfig(triggerConf);
+                        if (actionProvider) setSelectedActionProvider(actionProvider);
+                        if (actionCap) setSelectedAction(actionCap);
+                        if (actionConf) setActionConfig(actionConf);
+                        
+                        // Clear storage so it doesn't happens on manual refreshes
+                        sessionStorage.removeItem('pendingWorkflowCreate');
+                    }
+                }
+            } catch (err) {
+                console.error("Failed to fetch builder data", err);
+            } finally {
+                setDataLoading(false);
+            }
+        };
+        loadData();
+
+        // Listen for new account connections from other tabs/windows
+        const handleMessage = (event: MessageEvent) => {
+            if (event.data?.type === 'account-connected') {
+                httpClient.get('/api/v1/plugins/accounts').then(accRes => {
+                    const connectedProviderIds = accRes.data.map((a: any) => a.provider_id);
+                    setAccounts(connectedProviderIds);
+                });
+            }
+        };
+        window.addEventListener('message', handleMessage);
+        return () => window.removeEventListener('message', handleMessage);
+    }, [isAuthenticated, searchParams]);
 
     const scrollToActions = () => {
         setTimeout(() => {
@@ -64,117 +133,165 @@ export default function CreatePage() {
 
     // --- Trigger Handlers ---
 
-    const handleTriggerProviderSelect = (plugin: Plugin) => {
-        setSelectedTriggerProvider(plugin.name);
+    const handleTriggerProviderSelect = async (plugin: PluginProviderRead) => {
+        setSelectedTriggerProvider(plugin);
         setTriggerConfig({});
-        setTriggerAuthenticated(false);
+        
+        try {
+            const trigRes = await httpClient.get(`/api/v1/triggers?provider_id=${plugin.id}`);
+            setTriggers(trigRes.data);
+        } catch (e) {
+            console.error(e);
+        }
+        
         setView('trigger-function');
     };
 
-    const handleTriggerSelect = (plugin: Plugin) => {
+    const handleTriggerSelect = (plugin: PluginCapabilityRead) => {
         setSelectedTrigger(plugin);
         setTriggerConfig({});
-        setTriggerAuthenticated(false);
         setView('trigger-config');
     };
 
     const handleTriggerConfigSubmit = () => {
         setView('root');
-        // Auto-check auth requirements
-        if (!selectedTrigger?.authType || selectedTrigger.authType === 'None') {
-            setTriggerAuthenticated(true);
-            scrollToActions();
-        }
-    };
-
-    const handleTriggerConnect = () => {
-        setIsTriggerAuthenticating(true);
-        // Simulate Auth
-        setTimeout(() => {
-            setIsTriggerAuthenticating(false);
-            setTriggerAuthenticated(true);
-            scrollToActions();
-        }, 1500);
+        scrollToActions();
     };
 
     // --- Action Handlers ---
 
-    const handleActionProviderSelect = (plugin: Plugin) => {
-        setSelectedActionProvider(plugin.name);
+    const handleActionProviderSelect = async (plugin: PluginProviderRead) => {
+        setSelectedActionProvider(plugin);
         setActionConfig({});
-        setActionAuthenticated(false);
+
+        try {
+            const actRes = await httpClient.get(`/api/v1/actions?provider_id=${plugin.id}`);
+            setActions(actRes.data);
+        } catch (e) {
+            console.error(e);
+        }
+
         setView('action-function');
     };
 
-    const handleActionSelect = (plugin: Plugin) => {
+    const handleActionSelect = (plugin: PluginCapabilityRead) => {
         setSelectedAction(plugin);
         setActionConfig({});
-        setActionAuthenticated(false);
         setView('action-config');
     };
 
     const handleActionConfigSubmit = () => {
         setView('root');
-        // Auto-check auth requirements
-        if (!selectedAction?.authType || selectedAction.authType === 'None') {
-            setActionAuthenticated(true);
-        }
-    };
-
-    const handleActionConnect = () => {
-        setIsActionAuthenticating(true);
-        // Simulate Auth
-        setTimeout(() => {
-            setIsActionAuthenticating(false);
-            setActionAuthenticated(true);
-        }, 1500);
     };
 
     // --- Final Submit ---
 
     const handleCreate = async () => {
-        if (!selectedTrigger || !selectedAction) return;
+        if (!selectedTrigger || !selectedAction || !selectedTriggerProvider || !selectedActionProvider) return;
 
         setIsSubmitting(true);
         setError(null);
 
-        // Extract used variables from action config
-        const usedVariables = new Set<string>();
-        Object.values(actionConfig).forEach(value => {
-            const matches = value.match(/{{(.*?)}}/g);
-            if (matches) {
-                matches.forEach(match => {
-                    const varName = match.replace(/{{|}}/g, '');
-                    usedVariables.add(varName);
-                });
-            }
-        });
-
-        const selectedOutputs = selectedTrigger.outputs?.filter(output => usedVariables.has(output.name)) || [];
-
-        const workflowData: WorkflowCreate = {
+        const workflowData = {
             name: `${selectedTrigger.name} to ${selectedAction.name}`,
-            description: `Workflow triggered by ${selectedTrigger.name} and performing ${selectedAction.name}`,
-            workflow_json: {
-                trigger: {
-                    name: selectedTrigger.id,
-                    config: triggerConfig,
-                    selected_output: selectedOutputs
-                },
-                action: {
-                    name: selectedAction.id,
-                    config: actionConfig
-                }
+            description: null,
+            is_enabled: false,
+            is_public: true,
+            trigger: {
+                name: selectedTrigger.name,
+                plugin_provider_id: selectedTriggerProvider.id,
+                capability_key: selectedTrigger.unique_key,
+                config: triggerConfig
+            },
+            action: {
+                name: selectedAction.name,
+                plugin_provider_id: selectedActionProvider.id,
+                capability_key: selectedAction.unique_key,
+                config: actionConfig
             }
         };
 
+        if (!isAuthenticated) {
+            sessionStorage.setItem('pendingWorkflow', JSON.stringify(workflowData));
+            router.push('/auth/signup');
+            return;
+        }
+
+        // Check auth status
+        const triggerRequiresAuth = selectedTriggerProvider.auth_types && !selectedTriggerProvider.auth_types.includes('none');
+        const actionRequiresAuth = selectedActionProvider.auth_types && !selectedActionProvider.auth_types.includes('none');
+
+        const triggerConnected = accounts.includes(selectedTriggerProvider.id);
+        const actionConnected = accounts.includes(selectedActionProvider.id);
+
+        if ((triggerRequiresAuth && !triggerConnected) || (actionRequiresAuth && !actionConnected)) {
+            setError("Please connect your required plugin accounts in the Connections tab before saving.");
+            setIsSubmitting(false);
+            return;
+        }
+
         try {
-            await createWorkflow(workflowData);
+            await httpClient.post('/api/v1/workflows/', workflowData);
             setView('success');
         } catch (err: any) {
-            setError(err.message || 'Something went wrong');
+            setError(err.response?.data?.detail?.[0]?.msg || err.message || 'Something went wrong');
             setIsSubmitting(false);
         }
+    };
+
+    const handleConnectProvider = async (provider: PluginProviderRead) => {
+        if (!isAuthenticated) {
+            // Save state and redirect to login
+            const stateToSave = {
+                triggerProvider: selectedTriggerProvider,
+                triggerCap: selectedTrigger,
+                triggerConf: triggerConfig,
+                actionProvider: selectedActionProvider,
+                actionCap: selectedAction,
+                actionConf: actionConfig
+            };
+            sessionStorage.setItem('pendingWorkflowCreate', JSON.stringify(stateToSave));
+            router.push(`/auth/login?next=/create&state=restored`);
+            return;
+        }
+
+        const authTypes = provider.auth_types || [];
+        
+        // Priority 1: OAuth 2.0
+        if (authTypes.includes('oauth2')) {
+            try {
+                // Use a clean redirect URI that user can register in console
+                // We keep provider_id because it's needed by the callback page to identify the endpoint
+                const redirectUri = `${window.location.origin}/auth/plugin/callback?provider_id=${provider.id}&is_new_tab=true&dest=/create&state=restored`;
+                
+                const res = await httpClient.get(`/api/v1/plugins/accounts/${provider.id}/oauth/auth-url?redirect_uri=${encodeURIComponent(redirectUri)}`);
+                if (res.data?.auth_url) {
+                    window.open(res.data.auth_url, '_blank');
+                }
+            } catch (err) {
+                console.error("Failed to get auth url", err);
+                alert("Failed to initialize connection.");
+            }
+            return;
+        }
+
+        // Priority 2: Form-based auth (API Keys, tokens, etc.)
+        const formAuthTypes = ['api_key', 'bot_token', 'webhook_secret', 'basic_auth'];
+        if (authTypes.some(type => formAuthTypes.includes(type))) {
+            setAuthModalProvider(provider);
+            setIsAuthModalOpen(true);
+            return;
+        }
+
+        alert("No supported authentication method found for this provider.");
+    };
+
+    const handleAuthSuccess = () => {
+        // Refresh accounts list
+        httpClient.get('/api/v1/plugins/accounts').then(accRes => {
+            const connectedProviderIds = accRes.data.map((a: any) => a.provider_id);
+            setAccounts(connectedProviderIds);
+        });
     };
 
     const handleBack = () => {
@@ -190,32 +307,42 @@ export default function CreatePage() {
 
     const renderSelectedCard = (
         type: 'trigger' | 'action',
-        plugin: Plugin,
+        cap: PluginCapabilityRead,
+        provider: PluginProviderRead,
         config: Record<string, string>,
-        authenticated: boolean,
-        authenticating: boolean,
-        onConnect: () => void,
         onEdit: () => void
     ) => {
-        const needsAuth = plugin.authType && plugin.authType !== 'None';
-        const isReady = authenticated || !needsAuth;
+        const requiresAuth = provider.auth_types && !provider.auth_types.includes('none');
+        const isConnected = accounts.includes(provider.id);
+        const authOk = !requiresAuth || isConnected;
 
         return (
             <div className="w-full max-w-2xl relative group">
                 <div className={cn(
-                    "bg-card border rounded-2xl p-6 shadow-sm transition-all",
-                    !isReady && "border-primary/20 bg-primary/5"
+                    "bg-white dark:bg-zinc-950 border rounded-2xl p-6 shadow-sm transition-all",
+                    !authOk && "border-amber-200 bg-amber-50/30 dark:bg-amber-900/10"
                 )}>
                     {/* Header */}
                     <div className="flex items-start justify-between mb-4">
                         <div className="flex items-center gap-4">
-                            <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center text-white shadow-lg", plugin.color)}>
-                                {/* Icon would go here */}
-                                <span className="font-bold text-xl">{plugin.name[0]}</span>
+                            <div className="w-12 h-12 rounded-xl flex items-center justify-center text-white shadow-lg bg-black dark:bg-white text-black font-bold overflow-hidden">
+                                {provider.logo_url ? (
+                                    <img 
+                                        src={provider.logo_url} 
+                                        alt={provider.name} 
+                                        className="w-full h-full object-cover" 
+                                        onError={(e) => {
+                                            (e.target as HTMLImageElement).style.display = 'none';
+                                            (e.target as HTMLImageElement).parentElement!.innerText = provider.name[0];
+                                        }}
+                                    />
+                                ) : (
+                                    provider.name[0]
+                                )}
                             </div>
                             <div>
-                                <h3 className="text-xl font-bold">{plugin.description}</h3>
-                                <p className="text-muted-foreground text-sm">{plugin.name}</p>
+                                <h3 className="text-xl font-bold">{cap.name}</h3>
+                                <p className="text-zinc-500 text-sm">{provider.name}</p>
                             </div>
                         </div>
                         <Button variant="ghost" size="sm" onClick={onEdit}>Edit</Button>
@@ -225,50 +352,44 @@ export default function CreatePage() {
                     <div className="space-y-1 mb-6">
                         {Object.entries(config).map(([key, value]) => (
                             <div key={key} className="text-sm">
-                                <span className="text-muted-foreground capitalize">{key.replace(/_/g, ' ')}: </span>
+                                <span className="text-zinc-500 capitalize">{key.replace(/_/g, ' ')}: </span>
                                 <span className="font-medium truncate block sm:inline">{value}</span>
                             </div>
                         ))}
+                        {Object.keys(config).length === 0 && (
+                            <div className="text-sm text-zinc-400 italic">No configuration values.</div>
+                        )}
                     </div>
 
                     {/* Auth Status / Connect Button */}
-                    <div className="flex items-center justify-between border-t pt-4">
-                        <div className="flex items-center gap-2 text-sm">
-                            {needsAuth ? (
-                                <>
-                                    <span className="text-muted-foreground">Authentication:</span>
-                                    <span className="font-medium">{plugin.authType}</span>
-                                </>
-                            ) : (
-                                <span className="text-muted-foreground">No authentication required</span>
-                            )}
-                        </div>
+                    <div className="flex items-center justify-between border-t border-zinc-100 dark:border-zinc-800 pt-4">
+                        {authOk ? (
+                            <div className="flex items-center text-emerald-600 font-medium px-4 py-2 bg-emerald-50 dark:bg-emerald-950/30 rounded-full text-sm">
+                                <Check className="w-4 h-4 mr-1.5" strokeWidth={3} />
+                                {requiresAuth ? "Connected" : "No Auth Required"}
+                            </div>
+                        ) : (
+                            <div className="flex items-center text-amber-600 font-medium px-4 py-2 bg-amber-50 dark:bg-amber-950/30 rounded-full text-sm">
+                                Not Connected
+                            </div>
+                        )}
 
-                        {needsAuth && !authenticated && (
-                            <Button
-                                onClick={onConnect}
-                                disabled={authenticating}
-                                className="min-w-[120px]"
+                        {!authOk && (
+                            <Button 
+                                variant="default" 
+                                size="sm" 
+                                className="gap-2 rounded-full overflow-hidden px-4" 
+                                onClick={() => handleConnectProvider(provider)}
                             >
-                                {authenticating ? (
-                                    <>
-                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                        Connecting...
-                                    </>
+                                {!isAuthenticated ? (
+                                    "Login to Connect"
                                 ) : (
                                     <>
-                                        <Link2 className="mr-2 h-4 w-4" />
-                                        Login to Connect
+                                        {provider.logo_url && <img src={provider.logo_url} className="w-4 h-4 rounded-sm object-contain invert dark:invert-0" />}
+                                        Connect {provider.name}
                                     </>
                                 )}
                             </Button>
-                        )}
-
-                        {(authenticated || !needsAuth) && (
-                            <div className="flex items-center text-green-600 font-medium px-4 py-2 bg-green-50 rounded-full text-sm">
-                                <Check className="w-4 h-4 mr-1.5" strokeWidth={3} />
-                                Connected
-                            </div>
                         )}
                     </div>
                 </div>
@@ -278,17 +399,26 @@ export default function CreatePage() {
 
     // --- Main Render ---
 
+    if (dataLoading) {
+        return <div className="flex items-center justify-center min-h-[60vh]"><Loader2 className="w-8 h-8 animate-spin text-zinc-400" /></div>;
+    }
+
     if (view === 'success') {
         return (
             <div className="flex flex-col items-center justify-center min-h-[60vh] text-center gap-6 animate-in fade-in zoom-in duration-500">
-                <div className="w-24 h-24 bg-green-500 rounded-full flex items-center justify-center text-white mb-4 shadow-xl">
+                <div className="w-24 h-24 bg-emerald-500 rounded-full flex items-center justify-center text-white mb-4 shadow-xl">
                     <Check size={48} strokeWidth={4} />
                 </div>
-                <h1 className="text-4xl font-bold">Workflow Created!</h1>
-                <p className="text-xl text-zinc-500">Your automation is now active and running.</p>
-                <Link href="/">
-                    <Button className="mt-8" size="lg">Back to Home</Button>
-                </Link>
+                <h1 className="text-4xl font-black tracking-tight">Workflow Created!</h1>
+                <p className="text-xl text-zinc-500">Your automation is now saved.</p>
+                <div className="flex gap-4 mt-8">
+                    <Link href="/dashboard">
+                        <Button className="px-8" size="lg">Go to Dashboard</Button>
+                    </Link>
+                    <Button variant="outline" className="px-8" size="lg" onClick={() => {
+                        setView('root'); setSelectedTrigger(null); setSelectedAction(null); setSelectedTriggerProvider(null); setSelectedActionProvider(null);
+                    }}>Create Another</Button>
+                </div>
             </div>
         )
     }
@@ -296,8 +426,6 @@ export default function CreatePage() {
     if (view !== 'root') {
         // Selection Views
         const isTrigger = view.startsWith('trigger');
-        const isConfig = view.includes('config');
-        const isFunction = view.includes('function');
 
         let title = "";
         let content = null;
@@ -306,27 +434,31 @@ export default function CreatePage() {
             title = "Choose a Trigger Service";
             content = (
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                    {getUniqueProviders(TRIGGERS).map(t => (
-                        <PluginCard key={t.id} plugin={t} onClick={handleTriggerProviderSelect} />
+                    {providers.filter(p => p.supports_trigger).map(p => (
+                        <PluginCard key={p.id} plugin={p} onClick={() => handleTriggerProviderSelect(p)} />
                     ))}
                 </div>
             );
         } else if (view === 'trigger-function') {
-            title = `Select ${selectedTriggerProvider} Event`;
+            title = `Select ${selectedTriggerProvider?.name} Event`;
+            const provTriggers = triggers.filter(t => t.provider.id === selectedTriggerProvider?.id);
             content = (
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    {getPluginsByProvider(TRIGGERS, selectedTriggerProvider!).map(t => (
-                        <PluginCard key={t.id} plugin={t} onClick={handleTriggerSelect} />
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {provTriggers.map(t => (
+                        <div key={t.unique_key} onClick={() => handleTriggerSelect(t)} className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 p-6 rounded-3xl cursor-pointer hover:shadow-xl transition-all hover:-translate-y-1">
+                            <h3 className="font-bold text-lg">{t.name}</h3>
+                            <p className="text-zinc-500 text-sm mt-2">{t.description}</p>
+                        </div>
                     ))}
                 </div>
             );
         } else if (view === 'trigger-config') {
-            title = `Configure ${selectedTrigger?.description}`;
+            title = `Configure ${selectedTrigger?.name}`;
             content = (
-                <div className="w-full max-w-2xl bg-card border rounded-xl p-6 shadow-sm mx-auto">
-                    {selectedTrigger?.configFields && selectedTrigger.configFields.length > 0 ? (
+                <div className="w-full max-w-2xl bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-8 shadow-sm mx-auto">
+                    {selectedTrigger?.config_fields && selectedTrigger.config_fields.length > 0 ? (
                         <ConfigForm
-                            fields={selectedTrigger.configFields}
+                            fields={selectedTrigger.config_fields}
                             values={triggerConfig}
                             onChange={(name, value) => setTriggerConfig(prev => ({ ...prev, [name]: value }))}
                         />
@@ -342,30 +474,37 @@ export default function CreatePage() {
             title = "Choose an Action Service";
             content = (
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                    {getUniqueProviders(ACTIONS).map(a => (
-                        <PluginCard key={a.id} plugin={a} onClick={handleActionProviderSelect} />
+                    {providers.filter(p => p.supports_action).map(p => (
+                        <PluginCard key={p.id} plugin={p} onClick={() => handleActionProviderSelect(p)} />
                     ))}
                 </div>
             );
         } else if (view === 'action-function') {
-            title = `Select ${selectedActionProvider} Action`;
+            title = `Select ${selectedActionProvider?.name} Action`;
+            const provActions = actions.filter(a => a.provider.id === selectedActionProvider?.id);
             content = (
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    {getPluginsByProvider(ACTIONS, selectedActionProvider!).map(a => (
-                        <PluginCard key={a.id} plugin={a} onClick={handleActionSelect} />
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {provActions.map(a => (
+                        <div key={a.unique_key} onClick={() => handleActionSelect(a)} className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 p-6 rounded-3xl cursor-pointer hover:shadow-xl transition-all hover:-translate-y-1">
+                            <h3 className="font-bold text-lg">{a.name}</h3>
+                            <p className="text-zinc-500 text-sm mt-2">{a.description}</p>
+                        </div>
                     ))}
                 </div>
             );
         } else if (view === 'action-config') {
-            title = `Configure ${selectedAction?.description}`;
+            title = `Configure ${selectedAction?.name}`;
             content = (
-                <div className="w-full max-w-2xl bg-card border rounded-xl p-6 shadow-sm mx-auto">
-                    {selectedAction?.configFields && selectedAction.configFields.length > 0 ? (
+                <div className="w-full max-w-2xl bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-8 shadow-sm mx-auto">
+                    {selectedAction?.config_fields && selectedAction.config_fields.length > 0 ? (
                         <ConfigForm
-                            fields={selectedAction.configFields}
+                            fields={selectedAction.config_fields}
                             values={actionConfig}
                             onChange={(name, value) => setActionConfig(prev => ({ ...prev, [name]: value }))}
-                            availableVariables={selectedTrigger?.outputs || []}
+                            availableVariables={(selectedTrigger?.outputs || []).map((o: string) => ({
+                                name: `trigger.payload.${o}`,
+                                label: `Trigger token: ${o}`
+                            }))}
                         />
                     ) : (
                         <p className="text-zinc-500 text-center py-8">No specific configuration needed for this action.</p>
@@ -378,12 +517,12 @@ export default function CreatePage() {
         }
 
         return (
-            <div className="max-w-6xl mx-auto pb-20 pt-8 px-4">
-                <div className="flex items-center gap-4 mb-8 justify-center relative">
-                    <Button variant="outline" size="icon" onClick={handleBack} className="absolute left-0 w-12 h-12 border-2 rounded-xl">
+            <div className="max-w-6xl mx-auto pb-20 pt-24 px-4">
+                <div className="flex items-center gap-4 mb-12 justify-center relative">
+                    <Button variant="outline" size="icon" onClick={handleBack} className="absolute left-0 w-12 h-12 border-2 rounded-2xl">
                         <ChevronLeft size={28} />
                     </Button>
-                    <h2 className="text-3xl font-bold text-center">{title}</h2>
+                    <h2 className="text-3xl font-black tracking-tight text-center">{title}</h2>
                 </div>
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
@@ -398,7 +537,7 @@ export default function CreatePage() {
 
     // Root View (The Stack)
     return (
-        <div className="max-w-5xl mx-auto pb-32 pt-10 px-4">
+        <div className="max-w-5xl mx-auto pb-32 pt-24 px-4">
             <div className="mb-16 text-center">
                 <h1 className="text-5xl font-black tracking-tight mb-4">Create your own</h1>
                 <p className="text-xl text-zinc-500">Connect two services to build powerful automations.</p>
@@ -409,10 +548,10 @@ export default function CreatePage() {
                 {/* Trigger Section */}
                 <div className="w-full flex flex-col items-center z-10">
 
-                    {!selectedTrigger ? (
+                    {!selectedTrigger || !selectedTriggerProvider ? (
                         <button
                             onClick={() => setView('trigger-provider')}
-                            className="w-full max-w-lg h-32 bg-black hover:bg-zinc-900 text-white rounded-2xl flex items-center justify-center gap-4 text-3xl font-bold shadow-xl hover:scale-105 transition-all duration-300"
+                            className="w-full max-w-lg h-32 bg-black dark:bg-zinc-900 border dark:border-zinc-800 text-white rounded-3xl flex items-center justify-center gap-4 text-3xl font-bold shadow-2xl hover:scale-105 transition-all duration-300"
                         >
                             <span className="bg-white/20 p-2 rounded-full"><Zap size={32} fill="currentColor" /></span>
                             Choose Trigger
@@ -421,49 +560,51 @@ export default function CreatePage() {
                         renderSelectedCard(
                             'trigger',
                             selectedTrigger,
+                            selectedTriggerProvider,
                             triggerConfig,
-                            triggerAuthenticated,
-                            isTriggerAuthenticating,
-                            handleTriggerConnect,
-                            () => setView('trigger-config') // Allow re-editing config
+                            () => setView('trigger-config')
                         )
                     )}
                 </div>
 
                 {/* Connector Line */}
-                <div className="h-16 w-0.5 bg-border my-2"></div>
+                <div className="h-16 w-0.5 bg-zinc-200 dark:bg-zinc-800 my-2"></div>
 
                 {/* Action Section */}
                 <div ref={actionSectionRef} className="w-full flex flex-col items-center z-10">
 
-                    {!selectedAction ? (
+                    {!selectedAction || !selectedActionProvider ? (
                         <button
                             onClick={() => setView('action-provider')}
-                            className="w-full max-w-lg h-32 bg-zinc-100 hover:bg-zinc-200 text-black border-2 border-dashed border-zinc-300 hover:border-zinc-400 rounded-2xl flex items-center justify-center gap-4 text-3xl font-bold transition-all duration-300"
+                            className="w-full max-w-lg h-32 bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-950 dark:hover:bg-zinc-900 text-black dark:text-white border-2 border-dashed border-zinc-300 hover:border-zinc-400 dark:border-zinc-700 dark:hover:border-zinc-500 rounded-3xl flex items-center justify-center gap-4 text-3xl font-bold transition-all duration-300"
                         >
-                            <span className="bg-black/5 p-2 rounded-full"><Play size={32} fill="currentColor" /></span>
+                            <span className="bg-black/5 dark:bg-white/10 p-2 rounded-full"><Play size={32} fill="currentColor" /></span>
                             Choose Action
                         </button>
                     ) : (
                         renderSelectedCard(
                             'action',
                             selectedAction,
+                            selectedActionProvider,
                             actionConfig,
-                            actionAuthenticated,
-                            isActionAuthenticating,
-                            handleActionConnect,
                             () => setView('action-config')
                         )
                     )}
                 </div>
 
-                {/* Create Button (Sticky Bottom or just bottom) */}
+                {error && (
+                    <div className="mt-8 bg-red-50 dark:bg-red-950/30 text-red-600 px-6 py-4 rounded-2xl w-full max-w-lg mx-auto text-center font-medium border border-red-100 dark:border-red-900/50">
+                        {error}
+                    </div>
+                )}
+
+                {/* Create Button */}
                 <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 w-full max-w-md px-4">
                     <Button
                         size="lg"
                         className={cn(
-                            "w-full h-16 text-xl rounded-full shadow-2xl transition-all duration-500",
-                            (triggerAuthenticated && actionAuthenticated)
+                            "w-full h-16 text-xl font-bold rounded-full shadow-2xl transition-all duration-500",
+                            (selectedTrigger && selectedAction)
                                 ? "opacity-100 translate-y-0"
                                 : "opacity-0 translate-y-10 pointer-events-none"
                         )}
@@ -473,7 +614,7 @@ export default function CreatePage() {
                         {isSubmitting ? (
                             <>
                                 <Loader2 className="mr-2 h-6 w-6 animate-spin" />
-                                Creating Workflow...
+                                Saving Workflow...
                             </>
                         ) : (
                             "Create Workflow"
@@ -481,7 +622,23 @@ export default function CreatePage() {
                     </Button>
                 </div>
 
+                {/* Plugin Auth Modal */}
+                <PluginAuthModal
+                    isOpen={isAuthModalOpen}
+                    onClose={() => setIsAuthModalOpen(false)}
+                    provider={authModalProvider}
+                    onSuccess={handleAuthSuccess}
+                />
+
             </div>
         </div>
+    );
+}
+
+export default function CreatePage() {
+    return (
+        <Suspense fallback={<div className="flex items-center justify-center min-h-[60vh]"><Loader2 className="w-8 h-8 animate-spin text-zinc-400" /></div>}>
+            <CreatePageInternal />
+        </Suspense>
     );
 }

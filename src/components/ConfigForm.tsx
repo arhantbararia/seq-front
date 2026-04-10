@@ -1,4 +1,12 @@
-import { ConfigField } from "@/lib/mockData";
+export interface ConfigField {
+    name: string;
+    label: string;
+    type: 'text' | 'password' | 'select' | 'boolean';
+    required?: boolean;
+    options?: { label: string; value: string }[];
+    placeholder?: string;
+}
+
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -48,8 +56,8 @@ export function ConfigForm({ fields, values, onChange, availableVariables }: Con
                                     const currentVal = values[field.name] || '';
                                     onChange(field.name, currentVal + val);
                                 }}>
-                                    <SelectTrigger className="w-[100px] shrink-0 border border-input bg-white text-black hover:bg-zinc-50 shadow-sm">
-                                        <SelectValue placeholder="Insert..." />
+                                    <SelectTrigger className="w-[140px] shrink-0 border border-input bg-white text-black hover:bg-zinc-50 shadow-sm">
+                                        <SelectValue placeholder="Trigger tokens" />
                                     </SelectTrigger>
                                     <SelectContent className="bg-white text-black border-input">
                                         {availableVariables.map((v) => (

@@ -1,7 +1,23 @@
+export interface PluginSelection {
+    name: string;
+    plugin_provider_id: string;
+    capability_key: string;
+    config: Record<string, any>;
+}
+
 export interface WorkflowCreate {
     name: string;
     description?: string;
-    workflow_json: Record<string, any>;
+    is_enabled?: boolean;
+    is_public?: boolean;
+    trigger: PluginSelection;
+    action: PluginSelection;
+}
+
+export interface WorkflowSubscribe {
+    workflow_id: string;
+    trigger_config?: Record<string, any>;
+    action_config?: Record<string, any>;
 }
 
 export const createWorkflow = async (data: WorkflowCreate) => {

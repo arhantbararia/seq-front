@@ -1,12 +1,13 @@
 "use client";
 import Link from "next/link";
 import { Button } from "./ui/button";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/context/AuthContext";
+import { Settings, LogOut } from "lucide-react";
 
 export function Navbar() {
-    const { isAuthenticated, isLoading } = useAuth();
+    const { user, isAuthenticated, isLoading, logout } = useAuth();
 
-    if (isLoading) return null; // Or a loading skeleton
+    if (isLoading) return null;
 
     return (
         <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-4 bg-white/80 backdrop-blur-md dark:bg-black/80 border-b border-zinc-100 dark:border-zinc-800">
@@ -14,6 +15,11 @@ export function Navbar() {
                 Sequels
             </Link>
             <div className="flex items-center gap-4">
+                <Link href="/explore">
+                    <Button variant="ghost" size="default">
+                        Explore
+                    </Button>
+                </Link>
                 {!isAuthenticated ? (
                     <>
                         <Link href="/auth/login">
@@ -39,6 +45,14 @@ export function Navbar() {
                                 Create
                             </Button>
                         </Link>
+                        
+                        <div className="flex items-center gap-2 ml-4 pl-4 border-l border-zinc-200 dark:border-zinc-800">
+                            <span className="text-sm font-medium hidden sm:inline-block truncate max-w-[120px]">{user?.email}</span>
+                            <Link href="/connections">
+                                <Button variant="ghost" size="icon" title="Manage Connections"><Settings className="w-4 h-4" /></Button>
+                            </Link>
+                            <Button variant="ghost" size="icon" onClick={() => logout()} title="Logout"><LogOut className="w-4 h-4" /></Button>
+                        </div>
                     </>
                 )}
             </div>

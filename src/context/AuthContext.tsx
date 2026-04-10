@@ -2,19 +2,23 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { getAuthToken, removeAuthToken, setAuthToken } from '@/lib/utils';
+import { httpClient, setAccessToken } from '@/lib/httpClient';
 
-interface User {
+export interface User {
+    id: string;
     email: string;
-    // Add other user properties as needed
+    is_active?: boolean;
 }
 
 interface AuthContextType {
     user: User | null;
     isAuthenticated: boolean;
     isLoading: boolean;
-    login: (token: string) => void;
-    logout: () => void;
+    login: (email: string, password: string, redirect?: string) => Promise<void>;
+    loginWithToken: (accessToken: string, refreshToken?: string, redirect?: string) => Promise<void>;
+    register: (email: string, password: string, redirect?: string) => Promise<void>;
+    logout: () => Promise<void>;
+    refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -24,18 +28,50 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [isLoading, setIsLoading] = useState(true);
     const router = useRouter();
 
+    const fetchMe = async () => {
+        try {
+            const res = await httpClient.get('/api/v1/me');
+            setUser(res.data);
+        } catch (error) {
+            console.error("Failed to fetch user:", error);
+            setUser(null);
+        }
+    };
+
+    useEffect(() => {
+        const handleLogoutEvent = () => {
+            setUser(null);
+            setAccessToken(null);
+            localStorage.removeItem('refresh_token');
+            router.push('/auth/login');
+        };
+        window.addEventListener('auth-logout', handleLogoutEvent);
+        return () => window.removeEventListener('auth-logout', handleLogoutEvent);
+    }, [router]);
+
     useEffect(() => {
         const initializeAuth = async () => {
-            const token = getAuthToken();
-            if (token) {
-                // Ideally, verify token with backend here or decode JWT to get user info.
-                // For now, we'll assume if token exists, user is logged in.
-                // You might want to decode the JWT on the client to get the email instantly
-                // or fetch /me endpoint. A basic valid check:
-                if (token.split('.').length === 3) {
-                    setUser({ email: 'user@example.com' }); // Placeholder until we parse/fetch
-                } else {
-                    removeAuthToken();
+            const refreshToken = localStorage.getItem('refresh_token');
+            if (refreshToken) {
+                try {
+                    const res = await fetch(`${(process.env.NEXT_PUBLIC_BACKEND_URL || '').replace(/\/api\/v1\/?$/, '')}/api/v1/auth/token/refresh`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ refresh_token: refreshToken })
+                    });
+                    if (res.ok) {
+                        const data = await res.json();
+                        setAccessToken(data.access_token);
+                        if (data.refresh_token) {
+                            localStorage.setItem('refresh_token', data.refresh_token);
+                        }
+                        await fetchMe();
+                    } else {
+                        localStorage.removeItem('refresh_token');
+                    }
+                } catch (error) {
+                    console.error("Failed default auth init:", error);
+                    localStorage.removeItem('refresh_token');
                 }
             }
             setIsLoading(false);
@@ -44,22 +80,60 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         initializeAuth();
     }, []);
 
-    const login = (token: string) => {
-        setAuthToken(token);
-        // Simple parse to simulate user, in real app verify/fetch me
-        setUser({ email: 'user@example.com' });
-        setIsLoading(false);
-        router.push('/dashboard');
+    const handlePendingWorkflow = async () => {
+        const pendingValue = sessionStorage.getItem('pendingWorkflow');
+        if (pendingValue) {
+            try {
+                const workflowData = JSON.parse(pendingValue);
+                await httpClient.post('/api/v1/workflows/', workflowData);
+                sessionStorage.removeItem('pendingWorkflow');
+                return true;
+            } catch (e) {
+                console.error("Failed to auto-save pending workflow:", e);
+            }
+        }
+        return false;
     };
 
-    const logout = () => {
-        removeAuthToken();
+    const loginWithToken = async (accessToken: string, refreshToken?: string, redirect?: string) => {
+        setAccessToken(accessToken);
+        if (refreshToken) {
+            localStorage.setItem('refresh_token', refreshToken);
+        }
+        await fetchMe();
+        
+        const autoSaved = await handlePendingWorkflow();
+        router.push(autoSaved ? '/dashboard' : (redirect || '/dashboard'));
+    };
+
+    const login = async (email: string, password: string, redirect?: string) => {
+        const res = await httpClient.post('/api/v1/auth/login', { email, password });
+        const { access_token, refresh_token } = res.data;
+        await loginWithToken(access_token, refresh_token, redirect);
+    };
+
+    const register = async (email: string, password: string, redirect?: string) => {
+        await httpClient.post('/api/v1/auth/register', { email, password });
+        await login(email, password, redirect);
+    };
+
+    const logout = async () => {
+        const refreshToken = localStorage.getItem('refresh_token');
+        if (refreshToken) {
+            try {
+                await httpClient.post('/api/v1/auth/logout', { refresh_token: refreshToken });
+            } catch (e) {
+                console.error("Logout API failed:", e);
+            }
+        }
+        setAccessToken(null);
+        localStorage.removeItem('refresh_token');
         setUser(null);
-        router.push('/auth/login');
+        router.push('/');
     };
 
     return (
-        <AuthContext.Provider value={{ user, isAuthenticated: !!user, isLoading, login, logout }}>
+        <AuthContext.Provider value={{ user, isAuthenticated: !!user, isLoading, login, loginWithToken, register, logout, refreshUser: fetchMe }}>
             {children}
         </AuthContext.Provider>
     );
