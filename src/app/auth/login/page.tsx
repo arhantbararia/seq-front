@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, Suspense } from "react";
 import Link from "next/link";
 import { AuthLayout } from "@/components/auth/AuthLayout";
 import { Input } from "@/components/auth/Input";
@@ -8,8 +8,9 @@ import { Button } from "@/components/auth/Button";
 import { SocialAuth } from "@/components/auth/SocialAuth";
 import { useAuth } from "@/hooks/useAuth";
 import { useSearchParams } from "next/navigation";
+import { Loader2 } from "lucide-react";
 
-export default function LoginPage() {
+function LoginForm() {
     const { login } = useAuth();
     const searchParams = useSearchParams();
     const [isLoading, setIsLoading] = useState(false);
@@ -93,5 +94,17 @@ export default function LoginPage() {
 
             <SocialAuth />
         </AuthLayout>
+    );
+}
+
+export default function LoginPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen flex items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin text-neutral-400" />
+            </div>
+        }>
+            <LoginForm />
+        </Suspense>
     );
 }

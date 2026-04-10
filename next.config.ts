@@ -1,8 +1,17 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  output: "standalone",
-  /* config options here */
+  // Only use "standalone" when building Docker images (set via env)
+  ...(process.env.DOCKER_BUILD === "1" ? { output: "standalone" as const } : {}),
+
+  allowedDevOrigins: ["127.0.0.1", "localhost"],
+
+  images: {
+    remotePatterns: [
+      { protocol: "https", hostname: "img.logo.dev" },
+    ],
+  },
 };
 
 export default nextConfig;
+
