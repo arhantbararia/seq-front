@@ -36,7 +36,7 @@ export default function DashboardPage() {
         .then(([subsRes, provRes, accRes]) => {
             setSubscriptions(subsRes.data);
             setProviders(provRes.data);
-            setAccounts(accRes.data.map((a: any) => a.provider_id));
+            setAccounts(accRes.data.map((a: any) => a.plugin_provider_id));
         })
         .catch(console.error)
         .finally(() => setLoading(false));
@@ -177,7 +177,7 @@ export default function DashboardPage() {
                                     {workflow.name}
                                 </h3>
                                 <p className="text-sm text-zinc-500 line-clamp-2">
-                                    {workflow.description || `Trigger: ${getProviderName(workflow.trigger?.provider_id)} → Action: ${getProviderName(workflow.action?.provider_id)}`}
+                                    {workflow.description || `Trigger: ${getProviderName(workflow.trigger?.plugin_provider_id)} → Action: ${getProviderName(workflow.action?.plugin_provider_id)}`}
                                 </p>
                             </Link>
 

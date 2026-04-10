@@ -84,7 +84,7 @@ function CreatePageInternal() {
 
                 if (isAuthenticated) {
                     const accRes = await httpClient.get('/api/v1/plugins/accounts');
-                    const connectedProviderIds = accRes.data.map((a: any) => a.provider_id);
+                    const connectedProviderIds = accRes.data.map((a: any) => a.plugin_provider_id);
                     setAccounts(connectedProviderIds);
                 }
 
@@ -116,7 +116,7 @@ function CreatePageInternal() {
         const handleMessage = (event: MessageEvent) => {
             if (event.data?.type === 'account-connected') {
                 httpClient.get('/api/v1/plugins/accounts').then(accRes => {
-                    const connectedProviderIds = accRes.data.map((a: any) => a.provider_id);
+                    const connectedProviderIds = accRes.data.map((a: any) => a.plugin_provider_id);
                     setAccounts(connectedProviderIds);
                 });
             }
@@ -262,7 +262,8 @@ function CreatePageInternal() {
             try {
                 // Use a clean redirect URI that user can register in console
                 // We keep provider_id because it's needed by the callback page to identify the endpoint
-                const redirectUri = `${window.location.origin}/auth/plugin/callback?provider_id=${provider.id}&is_new_tab=true&dest=/create&state=restored`;
+                const appUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin;
+                const redirectUri = `${appUrl}/auth/plugin/callback?provider_id=${provider.id}&is_new_tab=true&dest=/create&state=restored`;
                 
                 const res = await httpClient.get(`/api/v1/plugins/accounts/${provider.id}/oauth/auth-url?redirect_uri=${encodeURIComponent(redirectUri)}`);
                 if (res.data?.auth_url) {
@@ -289,7 +290,7 @@ function CreatePageInternal() {
     const handleAuthSuccess = () => {
         // Refresh accounts list
         httpClient.get('/api/v1/plugins/accounts').then(accRes => {
-            const connectedProviderIds = accRes.data.map((a: any) => a.provider_id);
+            const connectedProviderIds = accRes.data.map((a: any) => a.plugin_provider_id);
             setAccounts(connectedProviderIds);
         });
     };

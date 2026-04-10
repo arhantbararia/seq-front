@@ -104,8 +104,8 @@ export default function WorkflowSetupPage() {
     const triggerProviderId = workflow.trigger?.plugin_provider_id;
     const actionProviderId = workflow.action?.plugin_provider_id;
 
-    const hasTriggerConn = accounts.some(a => a.provider_id === triggerProviderId);
-    const hasActionConn = accounts.some(a => a.provider_id === actionProviderId);
+    const hasTriggerConn = accounts.some(a => a.plugin_provider_id === triggerProviderId);
+    const hasActionConn = accounts.some(a => a.plugin_provider_id === actionProviderId);
 
     const triggerProvider = providers.find(p => p.id === triggerProviderId);
     const actionProvider = providers.find(p => p.id === actionProviderId);
@@ -123,7 +123,8 @@ export default function WorkflowSetupPage() {
         }
 
         try {
-            const redirectUri = `${window.location.origin}/auth/plugin/callback?dest=/workflows/${workflowId}/setup&state=restored&provider_id=${providerId}&is_new_tab=true`;
+            const appUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin;
+            const redirectUri = `${appUrl}/auth/plugin/callback?dest=/workflows/${workflowId}/setup&state=restored&provider_id=${providerId}&is_new_tab=true`;
             const res = await httpClient.get(`/api/v1/plugins/accounts/${providerId}/oauth/auth-url?redirect_uri=${encodeURIComponent(redirectUri)}`);
             if (res.data && res.data.auth_url) {
                 window.open(res.data.auth_url, '_blank');
