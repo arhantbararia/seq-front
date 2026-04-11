@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, Suspense } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { AuthLayout } from "@/components/auth/AuthLayout";
 import { Input } from "@/components/auth/Input";
@@ -14,11 +14,23 @@ function LoginForm() {
     const { login } = useAuth();
     const searchParams = useSearchParams();
     const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState("");
+    const [error, setError] = useState(searchParams.get("error") || "");
     const [formData, setFormData] = useState({
         email: "",
         password: "",
     });
+
+    useEffect(() => {
+        const errorParam = searchParams.get("error");
+        if (errorParam) {
+            // Optional formatting of error message.
+            if (errorParam === 'InvalidCallback') {
+                setError("Authentication failed. Please try again.");
+            } else {
+                setError(errorParam);
+            }
+        }
+    }, [searchParams]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();

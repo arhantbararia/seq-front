@@ -11,7 +11,7 @@ function CallbackContent() {
     const { loginWithToken } = useAuth();
 
     useEffect(() => {
-        const token = searchParams.get("token");
+        const token = searchParams.get("access_token") || searchParams.get("token");
         const refreshToken = searchParams.get("refresh_token") || undefined;
         if (token) {
             loginWithToken(token, refreshToken);
