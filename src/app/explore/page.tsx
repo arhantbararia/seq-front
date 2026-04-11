@@ -60,7 +60,7 @@ export default function ExplorePage() {
             if (providerId) params.append("provider_id", providerId);
 
             const res = await httpClient.get(`/api/v1/workflows/explore?${params.toString()}`);
-            setWorkflows(res.data);
+            setWorkflows(res.data.items || []); // Extract array from PaginatedWorkflows
             setPage(1); // reset to page 1 on new filter
         } catch (error) {
             console.error(error);

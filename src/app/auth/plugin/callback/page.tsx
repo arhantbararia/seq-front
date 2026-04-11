@@ -2,7 +2,7 @@
 
 import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { httpClient } from '@/lib/httpClient';
+import { httpClient, getAccessToken } from '@/lib/httpClient';
 import { useAuth } from '@/context/AuthContext';
 import { Loader2, CheckCircle2, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -47,16 +47,32 @@ function PluginCallbackContent() {
 
         const finalizeAuth = async () => {
             try {
-                // Clear handoff storage
+                // We use native fetch with redirect: 'manual' because the backend responds with an HTTP 307 Redirect!
+                // If we use Axios, it will automatically follow the redirect and trigger a CORS / Network Error
+                // on the frontend HTML page it gets redirected to. 'manual' lets us intercept the redirect opaquely.
+                const baseUrl = httpClient.defaults.baseURL || process.env.NEXT_PUBLIC_API_URL?.replace(/\/api\/v1\/?$/, '') || 'https://seq-goat-backend.onrender.com';
+                const apiUrl = `${baseUrl}/api/v1/plugins/accounts/${providerId}/oauth/callback?code=${encodeURIComponent(code || '')}&state=${encodeURIComponent(state || '')}`;
+
+                const res = await fetch(apiUrl, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${getAccessToken()}`
+                    },
+                    redirect: 'manual'
+                });
+
+                if (res.type === 'opaqueredirect' || res.status === 0 || (res.status >= 300 && res.status < 400) || res.ok) {
+                    // Success! The backend successfully exchanged tokens and initiated a redirect, which we caught.
+                } else {
+                    const errText = await res.text();
+                    throw new Error(errText || 'Failed to authenticate plugin.');
+                }
+
+                // Clear handoff storage ONLY after successful auth, so reloading works if networking fails
                 if (typeof window !== 'undefined') {
                     localStorage.removeItem('oauth_provider_id');
                     localStorage.removeItem('oauth_is_new_tab');
                 }
-
-                // Call the backend callback endpoint WITH authorization header
-                await httpClient.get(`/api/v1/plugins/accounts/${providerId}/oauth/callback`, {
-                    params: { code, state }
-                });
                 
                 setStatus('success');
                 
