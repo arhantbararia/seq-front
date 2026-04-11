@@ -3,16 +3,27 @@
 import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { httpClient } from '@/lib/httpClient';
+import { useAuth } from '@/context/AuthContext';
 import { Loader2, CheckCircle2, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 function PluginCallbackContent() {
     const searchParams = useSearchParams();
     const router = useRouter();
+    const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
     const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
     useEffect(() => {
+        // Wait for auth initialization to complete so the Bearer token is available
+        if (isAuthLoading) return;
+
+        if (!isAuthenticated) {
+            setStatus('error');
+            setErrorMessage('You are not logged in. Please log in first.');
+            return;
+        }
+
         const code = searchParams.get('code');
         const state = searchParams.get('state');
 
@@ -70,9 +81,9 @@ function PluginCallbackContent() {
         };
 
         finalizeAuth();
-    }, [searchParams, router]);
+    }, [searchParams, router, isAuthLoading, isAuthenticated]);
 
-    if (status === 'loading') {
+    if (status === 'loading' || isAuthLoading) {
         return (
             <div className="flex flex-col items-center justify-center p-12 text-center space-y-6">
                 <Loader2 className="w-12 h-12 animate-spin text-blue-600" />
