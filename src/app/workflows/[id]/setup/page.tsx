@@ -16,7 +16,7 @@ export default function WorkflowSetupPage() {
     const [workflow, setWorkflow] = useState<any>(null);
     const [accounts, setAccounts] = useState<any[]>([]);
     const [providers, setProviders] = useState<any[]>([]);
-    
+
     const [triggerCapability, setTriggerCapability] = useState<any>(null);
     const [actionCapability, setActionCapability] = useState<any>(null);
 
@@ -46,7 +46,7 @@ export default function WorkflowSetupPage() {
 
                 const wfData = wfRes.data;
                 const accountsData = accountsRes.data;
-                
+
                 setWorkflow(wfData);
                 setAccounts(accountsData);
                 setProviders(providersRes.data);
@@ -162,13 +162,13 @@ export default function WorkflowSetupPage() {
                     <h2 className="text-xl font-bold flex items-center gap-2">
                         1. Trigger: {triggerProvider?.name || 'Unknown'}
                     </h2>
-                    
+
                     {!hasTriggerConn ? (
                         <div className="p-6 border rounded-xl border-dashed border-zinc-300 dark:border-zinc-700 space-y-6">
                             <div className="flex items-center justify-between">
                                 <p className="text-sm text-zinc-500">
-                                    {!isAuthenticated 
-                                        ? "Log in to connect your accounts." 
+                                    {!isAuthenticated
+                                        ? "Log in to connect your accounts."
                                         : `You need to connect your ${triggerProvider?.name} account.`}
                                 </p>
                                 <Button onClick={() => handleConnectClick(triggerProviderId)} className="gap-2">
@@ -177,9 +177,9 @@ export default function WorkflowSetupPage() {
                                     ) : (
                                         <>
                                             {triggerProvider?.logo_url && (
-                                                <img 
-                                                    src={triggerProvider.logo_url} 
-                                                    className="w-4 h-4 rounded-sm object-contain invert dark:invert-0" 
+                                                <img
+                                                    src={triggerProvider.logo_url}
+                                                    className="w-4 h-4 rounded-sm object-contain invert dark:invert-0"
                                                     onError={(e) => (e.target as HTMLImageElement).style.display = 'none'}
                                                 />
                                             )}
@@ -188,14 +188,14 @@ export default function WorkflowSetupPage() {
                                     )}
                                 </Button>
                             </div>
-                            
+
                             {triggerCapability && triggerCapability.config_fields?.length > 0 && (
                                 <div className="pt-4 border-t border-dashed">
                                     <h4 className="text-sm font-bold mb-4 opacity-50">Configuration (will be saved after you connect)</h4>
-                                    <ConfigForm 
+                                    <ConfigForm
                                         fields={triggerCapability.config_fields}
                                         values={triggerConfig}
-                                        onChange={(name, val) => setTriggerConfig(prev => ({...prev, [name]: val}))}
+                                        onChange={(name, val) => setTriggerConfig(prev => ({ ...prev, [name]: val }))}
                                     />
                                 </div>
                             )}
@@ -206,12 +206,12 @@ export default function WorkflowSetupPage() {
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
                                 Connected
                             </div>
-                            
+
                             {triggerCapability && triggerCapability.config_fields?.length > 0 && (
-                                <ConfigForm 
+                                <ConfigForm
                                     fields={triggerCapability.config_fields}
                                     values={triggerConfig}
-                                    onChange={(name, val) => setTriggerConfig(prev => ({...prev, [name]: val}))}
+                                    onChange={(name, val) => setTriggerConfig(prev => ({ ...prev, [name]: val }))}
                                 />
                             )}
                         </div>
@@ -223,13 +223,13 @@ export default function WorkflowSetupPage() {
                     <h2 className="text-xl font-bold flex items-center gap-2">
                         2. Action: {actionProvider?.name || 'Unknown'}
                     </h2>
-                    
+
                     {!hasActionConn ? (
                         <div className="p-6 border rounded-xl border-dashed border-zinc-300 dark:border-zinc-700 space-y-6">
                             <div className="flex items-center justify-between">
                                 <p className="text-sm text-zinc-500">
-                                    {!isAuthenticated 
-                                        ? "Log in to connect your accounts." 
+                                    {!isAuthenticated
+                                        ? "Log in to connect your accounts."
                                         : `You need to connect your ${actionProvider?.name} account.`}
                                 </p>
                                 <Button onClick={() => handleConnectClick(actionProviderId)} className="gap-2">
@@ -238,9 +238,9 @@ export default function WorkflowSetupPage() {
                                     ) : (
                                         <>
                                             {actionProvider?.logo_url && (
-                                                <img 
-                                                    src={actionProvider.logo_url} 
-                                                    className="w-4 h-4 rounded-sm object-contain invert dark:invert-0" 
+                                                <img
+                                                    src={actionProvider.logo_url}
+                                                    className="w-4 h-4 rounded-sm object-contain invert dark:invert-0"
                                                     onError={(e) => (e.target as HTMLImageElement).style.display = 'none'}
                                                 />
                                             )}
@@ -253,13 +253,13 @@ export default function WorkflowSetupPage() {
                             {actionCapability && actionCapability.config_fields?.length > 0 && (
                                 <div className="pt-4 border-t border-dashed">
                                     <h4 className="text-sm font-bold mb-4 opacity-50">Configuration (will be saved after you connect)</h4>
-                                    <ConfigForm 
+                                    <ConfigForm
                                         fields={actionCapability.config_fields}
                                         values={actionConfig}
-                                        onChange={(name, val) => setActionConfig(prev => ({...prev, [name]: val}))}
+                                        onChange={(name, val) => setActionConfig(prev => ({ ...prev, [name]: val }))}
                                         availableVariables={(triggerCapability?.outputs || []).map((o: any) => ({
                                             name: `trigger.payload.${o.key}`,
-                                            label: `Ingredient: ${o.label}`
+                                            label: `Token: ${o.label}`
                                         }))}
                                     />
                                 </div>
@@ -273,13 +273,13 @@ export default function WorkflowSetupPage() {
                             </div>
 
                             {actionCapability && actionCapability.config_fields?.length > 0 && (
-                                <ConfigForm 
+                                <ConfigForm
                                     fields={actionCapability.config_fields}
                                     values={actionConfig}
-                                    onChange={(name, val) => setActionConfig(prev => ({...prev, [name]: val}))}
+                                    onChange={(name, val) => setActionConfig(prev => ({ ...prev, [name]: val }))}
                                     availableVariables={(triggerCapability?.outputs || []).map((o: any) => ({
                                         name: `trigger.payload.${o.key}`,
-                                        label: `Ingredient: ${o.label}`
+                                        label: `Token: ${o.label}`
                                     }))}
                                 />
                             )}
@@ -288,7 +288,7 @@ export default function WorkflowSetupPage() {
                 </div>
 
                 <div className="pt-8 border-t flex justify-end">
-                    <Button 
+                    <Button
                         size="lg"
                         className="px-8"
                         disabled={!hasTriggerConn || !hasActionConn || subscribing}

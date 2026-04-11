@@ -57,7 +57,7 @@ export function ConfigForm({ fields, values, onChange, availableVariables }: Con
                                     onChange(field.name, currentVal + val);
                                 }}>
                                     <SelectTrigger className="w-[140px] shrink-0 border border-input bg-white text-black hover:bg-zinc-50 shadow-sm">
-                                        <SelectValue placeholder="Ingredients" />
+                                        <SelectValue placeholder="Trigger Tokens" />
                                     </SelectTrigger>
                                     <SelectContent className="bg-white text-black border-input">
                                         {availableVariables.map((v) => (

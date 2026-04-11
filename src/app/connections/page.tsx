@@ -103,11 +103,10 @@ export default function ConnectionsPage() {
         alert("No supported authentication method found for this provider.");
     };
 
-    // Disconnect by accountId (the PluginAccount.id), not the provider ID
-    const handleDisconnect = async (accountId: string, providerName: string) => {
+    const handleDisconnect = async (providerId: string, providerName: string) => {
         if (!confirm(`Disconnect ${providerName}? All associated workflows using this connection will be affected.`)) return;
         try {
-            await httpClient.delete(`/api/v1/plugins/accounts/${accountId}`);
+            await httpClient.delete(`/api/v1/plugins/accounts/${providerId}`);
             fetchData();
         } catch (e) {
             console.error(e);
@@ -237,7 +236,7 @@ export default function ConnectionsPage() {
                                         <Button
                                             variant="ghost"
                                             className="w-full text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-xl font-bold gap-2"
-                                            onClick={() => handleDisconnect(account.id, provider.name)}
+                                            onClick={() => handleDisconnect(account.plugin_provider_id, provider.name)}
                                         >
                                             <X size={16} /> Disconnect
                                         </Button>

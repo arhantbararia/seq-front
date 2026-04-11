@@ -30,6 +30,7 @@ export default function Home() {
           className="text-6xl md:text-8xl font-black tracking-tighter"
         >
           Sequels
+          <span className="text-sm md:text-xl font-bold text-emerald-500 uppercase tracking-widest ml-4 align-top">Beta</span>
         </motion.h1>
         <motion.p
           initial={{ opacity: 0, y: 20 }}

@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { Button } from "./ui/button";
 import { useAuth } from "@/context/AuthContext";
-import { Settings, LogOut } from "lucide-react";
+import { Settings, LogOut, User } from "lucide-react";
 
 export function Navbar() {
     const { user, isAuthenticated, isLoading, logout } = useAuth();
@@ -47,7 +47,11 @@ export function Navbar() {
                         </Link>
                         
                         <div className="flex items-center gap-2 ml-4 pl-4 border-l border-zinc-200 dark:border-zinc-800">
-                            <span className="text-sm font-medium hidden sm:inline-block truncate max-w-[120px]">{user?.email}</span>
+                            <Link href="/dashboard">
+                                <Button variant="ghost" size="icon" title="Dashboard">
+                                    <User className="w-4 h-4" />
+                                </Button>
+                            </Link>
                             <Link href="/connections">
                                 <Button variant="ghost" size="icon" title="Manage Connections"><Settings className="w-4 h-4" /></Button>
                             </Link>
