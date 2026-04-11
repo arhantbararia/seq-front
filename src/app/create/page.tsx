@@ -502,9 +502,9 @@ function CreatePageInternal() {
                             fields={selectedAction.config_fields}
                             values={actionConfig}
                             onChange={(name, value) => setActionConfig(prev => ({ ...prev, [name]: value }))}
-                            availableVariables={(selectedTrigger?.outputs || []).map((o: string) => ({
-                                name: `trigger.payload.${o}`,
-                                label: `Trigger token: ${o}`
+                            availableVariables={(selectedTrigger?.outputs || []).map((o: any) => ({
+                                name: `trigger.payload.${o.key}`,
+                                label: `Ingredient: ${o.label}`
                             }))}
                         />
                     ) : (

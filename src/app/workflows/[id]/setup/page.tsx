@@ -257,9 +257,9 @@ export default function WorkflowSetupPage() {
                                         fields={actionCapability.config_fields}
                                         values={actionConfig}
                                         onChange={(name, val) => setActionConfig(prev => ({...prev, [name]: val}))}
-                                        availableVariables={(triggerCapability?.outputs || []).map((o: string) => ({
-                                            name: `trigger.payload.${o}`,
-                                            label: `Trigger token: ${o}`
+                                        availableVariables={(triggerCapability?.outputs || []).map((o: any) => ({
+                                            name: `trigger.payload.${o.key}`,
+                                            label: `Ingredient: ${o.label}`
                                         }))}
                                     />
                                 </div>
@@ -277,9 +277,9 @@ export default function WorkflowSetupPage() {
                                     fields={actionCapability.config_fields}
                                     values={actionConfig}
                                     onChange={(name, val) => setActionConfig(prev => ({...prev, [name]: val}))}
-                                    availableVariables={(triggerCapability?.outputs || []).map((o: string) => ({
-                                        name: `trigger.payload.${o}`,
-                                        label: `Trigger token: ${o}`
+                                    availableVariables={(triggerCapability?.outputs || []).map((o: any) => ({
+                                        name: `trigger.payload.${o.key}`,
+                                        label: `Ingredient: ${o.label}`
                                     }))}
                                 />
                             )}
