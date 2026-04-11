@@ -40,3 +40,7 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 *.json
+
+youtube_spotify_ui_test_guide.md
+
+youtube_spotify_test_guide.md

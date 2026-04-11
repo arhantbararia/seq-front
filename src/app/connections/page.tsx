@@ -72,23 +72,18 @@ export default function ConnectionsPage() {
         return () => window.removeEventListener('message', handleMessage);
     }, [isAuthenticated]);
 
-    // Build the OAuth redirect URI — prefer the env-configured public URL so it always points
-    // to the deployed frontend, not localhost during development.
-    const buildOAuthRedirectUri = (providerId: string, dest: string) => {
-        const appUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin;
-        return `${appUrl}/auth/plugin/callback?provider_id=${providerId}&is_new_tab=true&dest=${encodeURIComponent(dest)}`;
-    };
-
     const handleConnectProvider = async (provider: PluginProvider) => {
         const authTypes = provider.auth_types || [];
 
         if (authTypes.includes('oauth2')) {
             try {
-                const redirectUri = buildOAuthRedirectUri(provider.id, '/connections');
                 const res = await httpClient.get(
-                    `/api/v1/plugins/accounts/${provider.id}/oauth/auth-url?redirect_uri=${encodeURIComponent(redirectUri)}`
+                    `/api/v1/plugins/accounts/${provider.id}/oauth/auth-url`
                 );
                 if (res.data?.auth_url) {
+                    // Stash providerId so the callback page (in the popup) knows what to use
+                    localStorage.setItem('oauth_provider_id', provider.id);
+                    localStorage.setItem('oauth_is_new_tab', 'true');
                     window.open(res.data.auth_url, '_blank');
                 }
             } catch (e) {

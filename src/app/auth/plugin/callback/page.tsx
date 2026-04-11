@@ -15,9 +15,18 @@ function PluginCallbackContent() {
     useEffect(() => {
         const code = searchParams.get('code');
         const state = searchParams.get('state');
-        const providerId = searchParams.get('provider_id');
+
+        // Look for parameters in URL, then fallback to localStorage handoff state
+        let providerId = searchParams.get('provider_id');
+        let isNewTab = searchParams.get('is_new_tab') === 'true';
         const dest = searchParams.get('dest') || '/dashboard';
-        const isNewTab = searchParams.get('is_new_tab') === 'true';
+
+        if (typeof window !== 'undefined') {
+            if (!providerId) providerId = localStorage.getItem('oauth_provider_id') || null;
+            if (!searchParams.get('is_new_tab') && localStorage.getItem('oauth_is_new_tab') === 'true') {
+                isNewTab = true;
+            }
+        }
 
         if (!code || !providerId) {
             setStatus('error');
@@ -27,6 +36,12 @@ function PluginCallbackContent() {
 
         const finalizeAuth = async () => {
             try {
+                // Clear handoff storage
+                if (typeof window !== 'undefined') {
+                    localStorage.removeItem('oauth_provider_id');
+                    localStorage.removeItem('oauth_is_new_tab');
+                }
+
                 // Call the backend callback endpoint WITH authorization header
                 await httpClient.get(`/api/v1/plugins/accounts/${providerId}/oauth/callback`, {
                     params: { code, state }
