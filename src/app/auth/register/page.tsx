@@ -57,12 +57,33 @@ function RegisterForm() {
         return () => clearTimeout(timer);
     };
 
+    const validatePassword = (pass: string) => {
+        const minLength = pass.length >= 8;
+        const hasUpper = /[A-Z]/.test(pass);
+        const hasLower = /[a-z]/.test(pass);
+        const hasNumber = /[0-9]/.test(pass);
+        const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(pass);
+
+        if (!minLength) return "Password must be at least 8 characters long";
+        if (!hasUpper) return "Password must contain at least one uppercase letter";
+        if (!hasLower) return "Password must contain at least one lowercase letter";
+        if (!hasNumber) return "Password must contain at least one number";
+        if (!hasSpecial) return "Password must contain at least one special character (!@#$%^&*)";
+        return null;
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError("");
 
         if (usernameError) {
             setError("Please fix the username issue first");
+            return;
+        }
+
+        const passError = validatePassword(formData.password);
+        if (passError) {
+            setError(passError);
             return;
         }
 

@@ -7,9 +7,9 @@ import { PluginProviderRead } from "@/components/PluginCard";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
-import { 
-    ChevronLeft, Zap, Play, Users, 
-    Calendar, Check, Trash2, Edit3, 
+import {
+    ChevronLeft, Zap, Play, Users,
+    Calendar, Check, Trash2, Edit3,
     Power, Loader2, Info, ArrowRight,
     User as UserIcon, ShieldAlert
 } from "lucide-react";
@@ -46,22 +46,8 @@ export default function WorkflowDetailPage() {
         fetchData();
     }, [workflowId]);
 
-    const handleSubscribe = async () => {
-        if (!isAuthenticated) {
-            router.push(`/auth/login?next=/workflows/${workflowId}`);
-            return;
-        }
-
-        setIsActionLoading(true);
-        try {
-            await httpClient.post(`/api/v1/workflows/${workflowId}/subscribe`);
-            await fetchData();
-        } catch (err) {
-            console.error("Failed to subscribe", err);
-            alert("Failed to subscribe to workflow.");
-        } finally {
-            setIsActionLoading(false);
-        }
+    const handleSubscribe = () => {
+        router.push(`/workflows/${workflowId}/setup`);
     };
 
     const handleUnsubscribe = async () => {
@@ -153,7 +139,7 @@ export default function WorkflowDetailPage() {
 
     const triggerProvider = providers.find(p => p.id === workflow.trigger?.plugin_provider_id);
     const actionProvider = providers.find(p => p.id === workflow.action?.plugin_provider_id);
-    
+
     const isCreator = user && workflow.user_id === user.id;
     const isSubscribed = user && workflow.subscribers?.some((s: any) => s.id === user.id);
 
@@ -161,7 +147,7 @@ export default function WorkflowDetailPage() {
         if (key === '_auth_context' || key.toLowerCase().includes('token') || key.toLowerCase().includes('key') || key.toLowerCase().includes('secret')) {
             return null;
         }
-        
+
         return (
             <div key={key} className="flex flex-col sm:flex-row sm:items-center justify-between py-3 border-b border-zinc-100 dark:border-zinc-800 last:border-0">
                 <span className="text-xs font-bold uppercase tracking-wider text-zinc-400 mb-1 sm:mb-0">
@@ -175,11 +161,11 @@ export default function WorkflowDetailPage() {
     };
 
     return (
-        <div className="max-w-5xl mx-auto px-6 pb-32 pt-12 min-h-screen">
+        <div className="max-w-6xl mx-auto pb-32 pt-24 px-6">
             <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
-                <Link href="/explore" className="group flex items-center gap-2 text-sm font-bold text-zinc-500 hover:text-black dark:hover:text-white mb-12 transition-colors">
+                <Link href="/dashboard" className="group flex items-center gap-2 text-sm font-bold text-zinc-500 hover:text-black dark:hover:text-white mb-8 transition-colors">
                     <ChevronLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
-                    Back to Explore
+                    Back to Dashboard
                 </Link>
             </motion.div>
 
@@ -209,8 +195,8 @@ export default function WorkflowDetailPage() {
                     {/* Interaction Components */}
                     <div className="space-y-6">
                         {/* Trigger Card */}
-                        <motion.div 
-                            initial={{ opacity: 0, y: 20 }} 
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.1 }}
                             className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-[2.5rem] p-8 shadow-sm relative overflow-hidden group"
@@ -228,7 +214,7 @@ export default function WorkflowDetailPage() {
                                     <div className="text-zinc-500 font-medium text-sm">{workflow.trigger?.name}</div>
                                 </div>
                             </div>
-                            
+
                             <div className="bg-zinc-50 dark:bg-zinc-900/50 rounded-2xl p-6 relative z-10 border border-zinc-100 dark:border-zinc-800/50">
                                 <div className="flex items-center gap-2 mb-4 text-xs font-black text-zinc-400 uppercase tracking-wider">
                                     <Info size={14} />
@@ -251,8 +237,8 @@ export default function WorkflowDetailPage() {
                         </div>
 
                         {/* Action Card */}
-                        <motion.div 
-                            initial={{ opacity: 0, y: 20 }} 
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.2 }}
                             className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-[2.5rem] p-8 shadow-sm relative overflow-hidden group"
@@ -289,8 +275,8 @@ export default function WorkflowDetailPage() {
 
                 {/* Sidebar Controls */}
                 <div className="lg:col-span-1 space-y-6">
-                    <motion.div 
-                        initial={{ opacity: 0, scale: 0.9 }} 
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
                         className="bg-zinc-900 dark:bg-zinc-800 text-white rounded-[2.5rem] p-8 shadow-2xl sticky top-32"
                     >
@@ -316,8 +302,8 @@ export default function WorkflowDetailPage() {
                             <AnimatePresence mode="wait">
                                 {isCreator ? (
                                     <motion.div key="creator" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-3">
-                                        <Button 
-                                            onClick={() => handleToggle(!workflow.is_enabled)} 
+                                        <Button
+                                            onClick={() => handleToggle(!workflow.is_enabled)}
                                             className={cn("w-full h-14 rounded-2xl text-base font-bold gap-2", workflow.is_enabled ? "bg-amber-500 hover:bg-amber-600" : "bg-emerald-500 hover:bg-emerald-600")}
                                             disabled={isActionLoading}
                                         >
@@ -341,8 +327,8 @@ export default function WorkflowDetailPage() {
                                             </div>
                                             <span className="text-xs font-bold text-emerald-400">Subscribed Successfully</span>
                                         </div>
-                                        <Button 
-                                            onClick={() => handleToggle(!workflow.is_enabled)} 
+                                        <Button
+                                            onClick={() => handleToggle(!workflow.is_enabled)}
                                             className={cn("w-full h-14 rounded-2xl text-base font-bold gap-2", workflow.is_enabled ? "bg-zinc-700 hover:bg-zinc-600" : "bg-emerald-500 hover:bg-emerald-600")}
                                             disabled={isActionLoading}
                                         >
@@ -356,9 +342,9 @@ export default function WorkflowDetailPage() {
                                     </motion.div>
                                 ) : (
                                     <motion.div key="guest" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                                        <Button 
-                                            size="lg" 
-                                            className="w-full h-16 text-lg rounded-2xl bg-white text-black hover:bg-zinc-100" 
+                                        <Button
+                                            size="lg"
+                                            className="w-full h-16 text-lg rounded-2xl bg-white text-black hover:bg-zinc-100"
                                             onClick={handleSubscribe}
                                             disabled={isActionLoading}
                                         >
@@ -384,7 +370,7 @@ export default function WorkflowDetailPage() {
                                     <Zap size={14} />
                                     <span className="text-[10px] uppercase font-black tracking-tighter">Executions</span>
                                 </div>
-                                <div className="text-xl font-black">2.4k</div>
+                                <div className="text-xl font-black">{workflow.subscribers_count || 0}</div>
                             </div>
                         </div>
                     </motion.div>

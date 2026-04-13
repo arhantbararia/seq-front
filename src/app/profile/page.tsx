@@ -104,16 +104,16 @@ export default function ProfilePage() {
     const getProviderName = (id: string) => providers.find(p => p.id === id)?.name || id;
 
     return (
-        <div className="max-w-6xl mx-auto pb-32 pt-12 px-6">
+        <div className="max-w-6xl mx-auto pb-32 pt-24 px-6">
             {/* Hero Section */}
             <motion.div 
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="relative mb-12 rounded-[2.5rem] overflow-hidden bg-gradient-to-br from-indigo-600 via-violet-600 to-rose-500 p-1"
             >
-                <div className="bg-white/95 dark:bg-zinc-950/95 backdrop-blur-xl rounded-[2.4rem] p-8 md:p-12 flex flex-col md:flex-row items-center gap-8">
+                <div className="bg-white/95 dark:bg-zinc-950/95 backdrop-blur-xl rounded-[2.4rem] p-6 md:p-12 flex flex-col md:flex-row items-center gap-8">
                     <div className="relative group">
-                        <div className="w-32 h-32 md:w-40 md:h-40 rounded-full bg-gradient-to-tr from-indigo-500 to-rose-500 flex items-center justify-center text-white text-5xl md:text-6xl font-black shadow-2xl relative z-10">
+                        <div className="w-28 h-28 md:w-40 md:h-40 rounded-full bg-gradient-to-tr from-indigo-500 to-rose-500 flex items-center justify-center text-white text-4xl md:text-6xl font-black shadow-2xl relative z-10">
                             {profile?.username.charAt(0).toUpperCase()}
                         </div>
                         <div className="absolute inset-0 bg-indigo-500 rounded-full blur-2xl opacity-20 group-hover:opacity-40 transition-opacity"></div>
@@ -121,21 +121,21 @@ export default function ProfilePage() {
                     
                     <div className="flex-1 text-center md:text-left">
                         <div className="flex flex-col md:flex-row md:items-center gap-3 mb-4">
-                            <h1 className="text-4xl md:text-5xl font-black tracking-tight">{profile?.username}</h1>
+                            <h1 className="text-3xl md:text-5xl font-black tracking-tight">{profile?.username}</h1>
                             {profile?.is_active && (
-                                <span className="inline-flex items-center px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 text-xs font-bold uppercase tracking-wider w-fit mx-auto md:mx-0">
+                                <span className="inline-flex items-center px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold uppercase tracking-widest w-fit mx-auto md:mx-0">
                                     <span className="w-2 h-2 rounded-full bg-emerald-500 mr-2 animate-pulse"></span>
                                     Active Account
                                 </span>
                             )}
                         </div>
                         <div className="flex flex-col md:flex-row gap-4 text-zinc-500 font-medium">
-                            <div className="flex items-center justify-center md:justify-start gap-2">
-                                <Mail size={18} className="text-indigo-500" />
+                            <div className="flex items-center justify-center md:justify-start gap-2 text-sm">
+                                <Mail size={16} className="text-indigo-500" />
                                 <span>{profile?.email}</span>
                             </div>
-                            <div className="flex items-center justify-center md:justify-start gap-2">
-                                <User size={18} className="text-violet-500" />
+                            <div className="flex items-center justify-center md:justify-start gap-2 text-sm">
+                                <User size={16} className="text-violet-500" />
                                 <span>Member since {profile ? new Date().getFullYear() : '---'}</span>
                             </div>
                         </div>

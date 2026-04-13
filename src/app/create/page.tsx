@@ -216,13 +216,13 @@ function CreatePageInternal() {
             is_enabled: false,
             is_public: true,
             trigger: {
-                name: selectedTrigger.name,
+                name: selectedTriggerProvider.name + " Trigger",
                 plugin_provider_id: selectedTriggerProvider.id,
                 capability_key: selectedTrigger.unique_key,
                 config: triggerConfig
             },
             action: {
-                name: selectedAction.name,
+                name: selectedActionProvider.name + " Action",
                 plugin_provider_id: selectedActionProvider.id,
                 capability_key: selectedAction.unique_key,
                 config: actionConfig
@@ -566,9 +566,9 @@ function CreatePageInternal() {
     // Root View (The Stack)
     return (
         <div className="max-w-5xl mx-auto pb-32 pt-24 px-4">
-            <div className="mb-16 text-center">
-                <h1 className="text-5xl font-black tracking-tight mb-4">Create your own</h1>
-                <p className="text-xl text-zinc-500">Connect two services to build powerful automations.</p>
+            <div className="mb-12 md:mb-16 text-center">
+                <h1 className="text-4xl md:text-5xl font-black tracking-tight mb-4 leading-tight">Create your own</h1>
+                <p className="text-lg md:text-xl text-zinc-500">Connect two services to build powerful automations.</p>
             </div>
 
             <div className="flex flex-col items-center gap-4 relative">
