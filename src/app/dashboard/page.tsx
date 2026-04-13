@@ -48,7 +48,7 @@ export default function DashboardPage() {
         setSubscriptions(subs => subs.map(s => s.id === sub.id ? { ...s, is_active: newStatus } : s));
 
         try {
-            await httpClient.patch(`/api/v1/me/subscriptions/${sub.id}`, { is_active: newStatus });
+            await httpClient.patch(`/api/v1/me/subscriptions/${sub.id}`, { is_enabled: newStatus });
             
             // If user owns the workflow, we also toggle the workflow itself
             if (sub.workflow.user_id === user?.id) {
