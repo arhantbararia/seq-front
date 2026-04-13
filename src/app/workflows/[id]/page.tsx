@@ -24,6 +24,7 @@ export default function WorkflowDetailPage() {
 
     const [workflow, setWorkflow] = useState<any>(null);
     const [providers, setProviders] = useState<PluginProviderRead[]>([]);
+    const [creator, setCreator] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [isActionLoading, setIsActionLoading] = useState(false);
 
@@ -35,6 +36,16 @@ export default function WorkflowDetailPage() {
             ]);
             setProviders(providersRes.data);
             setWorkflow(workflowRes.data);
+
+            // Fetch creator details
+            if (workflowRes.data.user_id) {
+                try {
+                    const creatorRes = await httpClient.get(`/api/v1/user/${workflowRes.data.user_id}`);
+                    setCreator(creatorRes.data);
+                } catch (userErr) {
+                    console.error("Failed to fetch creator details", userErr);
+                }
+            }
         } catch (err) {
             console.error(err);
         } finally {
@@ -291,7 +302,9 @@ export default function WorkflowDetailPage() {
                                     {isCreator ? <ShieldAlert size={16} /> : <UserIcon size={16} />}
                                 </div>
                                 <div className="text-sm">
-                                    <div className="font-black">Your Role</div>
+                                    <div className="font-black">
+                                        {isCreator ? "Created by You" : `Created by ${creator?.username || '...'}`}
+                                    </div>
                                     <div className="text-white/60 text-xs font-medium">
                                         {isCreator ? "Owner & Creator" : isSubscribed ? "Active Subscriber" : "External Discovery"}
                                     </div>
