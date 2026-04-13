@@ -94,13 +94,14 @@ function CreatePageInternal() {
                     const savedFull = sessionStorage.getItem('pendingWorkflow');
                     
                     if (savedCreate) {
-                        const { triggerProvider, triggerCap, triggerConf, actionProvider, actionCap, actionConf } = JSON.parse(savedCreate);
+                        const { triggerProvider, triggerCap, triggerConf, actionProvider, actionCap, actionConf, view: savedView } = JSON.parse(savedCreate);
                         if (triggerProvider) setSelectedTriggerProvider(triggerProvider);
                         if (triggerCap) setSelectedTrigger(triggerCap);
                         if (triggerConf) setTriggerConfig(triggerConf);
                         if (actionProvider) setSelectedActionProvider(actionProvider);
                         if (actionCap) setSelectedAction(actionCap);
                         if (actionConf) setActionConfig(actionConf);
+                        if (savedView) setView(savedView);
                         sessionStorage.removeItem('pendingWorkflowCreate');
                     } else if (savedFull) {
                         const workflow = JSON.parse(savedFull);
@@ -149,6 +150,55 @@ function CreatePageInternal() {
         }, 100);
     };
 
+    const savePartialWorkflow = () => {
+        const state = {
+            triggerProvider: selectedTriggerProvider,
+            triggerCap: selectedTrigger,
+            triggerConf: triggerConfig,
+            actionProvider: selectedActionProvider,
+            actionCap: selectedAction,
+            actionConf: actionConfig,
+            view: view
+        };
+        sessionStorage.setItem('pendingWorkflowCreate', JSON.stringify(state));
+    };
+
+    const handleAuthSuccess = async () => {
+        // Refresh accounts
+        try {
+            const accRes = await httpClient.get('/api/v1/plugins/accounts');
+            const connectedProviderIds = accRes.data.map((a: any) => a.plugin_provider_id);
+            setAccounts(connectedProviderIds);
+        } catch (e) {
+            console.error(e);
+        }
+    };
+
+    const handleConnectProvider = async (provider: PluginProviderRead) => {
+        if (!isAuthenticated) {
+            savePartialWorkflow();
+            router.push(`/auth/login?next=/create&state=restored`);
+            return;
+        }
+
+        const authTypes = provider.auth_types || [];
+        
+        if (authTypes.includes('oauth2')) {
+            savePartialWorkflow();
+            const appUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin;
+            const redirectUri = `${appUrl}/auth/plugin/callback?dest=/create&state=restored&provider_id=${provider.id}&is_new_tab=true`;
+            try {
+                const res = await httpClient.get(`/api/v1/plugins/accounts/${provider.id}/oauth/auth-url?redirect_uri=${encodeURIComponent(redirectUri)}`);
+                if (res.data?.auth_url) window.open(res.data.auth_url, '_blank');
+            } catch (err) {
+                console.error(err);
+            }
+        } else {
+            setAuthModalProvider(provider);
+            setIsAuthModalOpen(true);
+        }
+    };
+
     // --- Trigger Handlers ---
 
     const handleTriggerProviderSelect = async (plugin: PluginProviderRead) => {
@@ -160,6 +210,16 @@ function CreatePageInternal() {
             setTriggers(trigRes.data);
         } catch (e) {
             console.error(e);
+        }
+
+        // Check connectivity
+        if (isAuthenticated) {
+            const isConnected = accounts.includes(plugin.id);
+            const requiresAuth = plugin.auth_types && !plugin.auth_types.includes('none');
+            
+            if (requiresAuth && !isConnected) {
+                handleConnectProvider(plugin);
+            }
         }
         
         setView('trigger-function');
@@ -187,6 +247,16 @@ function CreatePageInternal() {
             setActions(actRes.data);
         } catch (e) {
             console.error(e);
+        }
+
+        // Check connectivity
+        if (isAuthenticated) {
+            const isConnected = accounts.includes(plugin.id);
+            const requiresAuth = plugin.auth_types && !plugin.auth_types.includes('none');
+            
+            if (requiresAuth && !isConnected) {
+                handleConnectProvider(plugin);
+            }
         }
 
         setView('action-function');
@@ -255,71 +325,6 @@ function CreatePageInternal() {
             setError(err.response?.data?.detail?.[0]?.msg || err.message || 'Something went wrong');
             setIsSubmitting(false);
         }
-    };
-
-    const handleConnectProvider = async (provider: PluginProviderRead) => {
-        // ALWAYS stash current workflow state in sessionStorage before starting any auth flow
-        // This ensures progress is preserved if the page redirects (e.g., login or OAuth callback)
-        const stateToSave = {
-            triggerProvider: selectedTriggerProvider,
-            triggerCap: selectedTrigger,
-            triggerConf: triggerConfig,
-            actionProvider: selectedActionProvider,
-            actionCap: selectedAction,
-            actionConf: actionConfig
-        };
-        sessionStorage.setItem('pendingWorkflowCreate', JSON.stringify(stateToSave));
-
-        if (!isAuthenticated) {
-            router.push(`/auth/login?next=/create&state=restored`);
-            return;
-        }
-
-        const authTypes = provider.auth_types || [];
-        
-        // Priority 1: OAuth 2.0
-        if (authTypes.includes('oauth2')) {
-            try {
-                // Stash context in localStorage as many providers strip query params from redirect_uri
-                if (typeof window !== 'undefined') {
-                    localStorage.setItem('oauth_provider_id', provider.id);
-                    localStorage.setItem('oauth_is_new_tab', 'true');
-                    localStorage.setItem('oauth_dest', '/create?state=restored');
-                }
-
-                // Use a clean redirect URI that user can register in console
-                // We still keep params in the URL as a fallback for browsers with private mode/restricted storage
-                const appUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin;
-                const redirectUri = `${appUrl}/auth/plugin/callback?provider_id=${provider.id}&is_new_tab=true&dest=/create&state=restored`;
-                
-                const res = await httpClient.get(`/api/v1/plugins/accounts/${provider.id}/oauth/auth-url?redirect_uri=${encodeURIComponent(redirectUri)}`);
-                if (res.data?.auth_url) {
-                    window.open(res.data.auth_url, '_blank');
-                }
-            } catch (err) {
-                console.error("Failed to get auth url", err);
-                alert("Failed to initialize connection.");
-            }
-            return;
-        }
-
-        // Priority 2: Form-based auth (API Keys, tokens, etc.)
-        const formAuthTypes = ['api_key', 'bot_token', 'webhook_secret', 'basic_auth'];
-        if (authTypes.some(type => formAuthTypes.includes(type))) {
-            setAuthModalProvider(provider);
-            setIsAuthModalOpen(true);
-            return;
-        }
-
-        alert("No supported authentication method found for this provider.");
-    };
-
-    const handleAuthSuccess = () => {
-        // Refresh accounts list
-        httpClient.get('/api/v1/plugins/accounts').then(accRes => {
-            const connectedProviderIds = accRes.data.map((a: any) => a.plugin_provider_id);
-            setAccounts(connectedProviderIds);
-        });
     };
 
     const handleBack = () => {

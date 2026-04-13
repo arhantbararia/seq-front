@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { PluginAuthModal } from "@/components/PluginAuthModal";
 
 export default function WorkflowSetupPage() {
     const params = useParams();
@@ -38,6 +39,10 @@ export default function WorkflowSetupPage() {
 
     const [loading, setLoading] = useState(true);
     const [subscribing, setSubscribing] = useState(false);
+
+    // Auth Modal State
+    const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+    const [authModalProvider, setAuthModalProvider] = useState<any | null>(null);
 
     useEffect(() => {
         if (!authLoading && !isAuthenticated) {
@@ -93,18 +98,25 @@ export default function WorkflowSetupPage() {
     }, [workflowId, isAuthenticated]);
 
     const handleConnectClick = async (provider: any) => {
-        sessionStorage.setItem(`pendingWorkflowSetup_${workflowId}`, JSON.stringify({
-            triggerConf: triggerConfig,
-            actionConf: actionConfig
-        }));
+        const authTypes = provider.auth_types || [];
 
-        try {
-            const appUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin;
-            const redirectUri = `${appUrl}/auth/plugin/callback?dest=/workflows/${workflowId}/setup&state=restored&provider_id=${provider.id}&is_new_tab=true`;
-            const res = await httpClient.get(`/api/v1/plugins/accounts/${provider.id}/oauth/auth-url?redirect_uri=${encodeURIComponent(redirectUri)}`);
-            if (res.data?.auth_url) window.open(res.data.auth_url, '_blank');
-        } catch (e) {
-            alert("Failed to initialize connection.");
+        if (authTypes.includes('oauth2')) {
+            sessionStorage.setItem(`pendingWorkflowSetup_${workflowId}`, JSON.stringify({
+                triggerConf: triggerConfig,
+                actionConf: actionConfig
+            }));
+
+            try {
+                const appUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin;
+                const redirectUri = `${appUrl}/auth/plugin/callback?dest=/workflows/${workflowId}/setup&state=restored&provider_id=${provider.id}&is_new_tab=true`;
+                const res = await httpClient.get(`/api/v1/plugins/accounts/${provider.id}/oauth/auth-url?redirect_uri=${encodeURIComponent(redirectUri)}`);
+                if (res.data?.auth_url) window.open(res.data.auth_url, '_blank');
+            } catch (e) {
+                alert("Failed to initialize connection.");
+            }
+        } else {
+            setAuthModalProvider(provider);
+            setIsAuthModalOpen(true);
         }
     };
 
@@ -277,6 +289,13 @@ export default function WorkflowSetupPage() {
                     </div>
                 </div>
             </div>
+
+            <PluginAuthModal
+                isOpen={isAuthModalOpen}
+                onClose={() => setIsAuthModalOpen(false)}
+                provider={authModalProvider}
+                onSuccess={fetchData}
+            />
         </div>
     );
 }

@@ -306,7 +306,7 @@ export default function WorkflowDetailPage() {
                                         {isCreator ? "Created by You" : `Created by ${creator?.username || '...'}`}
                                     </div>
                                     <div className="text-white/60 text-xs font-medium">
-                                        {isCreator ? "Owner & Creator" : isSubscribed ? "Active Subscriber" : "External Discovery"}
+                                        {isCreator ? "Owner & Creator" : isSubscribed ? "Active Subscriber" : ""}
                                     </div>
                                 </div>
                             </div>

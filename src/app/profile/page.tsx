@@ -9,7 +9,7 @@ import Link from "next/link";
 import { 
     User, Mail, ArrowRight, Loader2, 
     Layers, Zap, ShieldCheck, ExternalLink,
-    ChevronRight, Settings
+    ChevronRight, Settings, AlertCircle, RefreshCw
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
@@ -46,40 +46,60 @@ export default function ProfilePage() {
     const [createdWorkflows, setCreatedWorkflows] = useState<WorkflowRead[]>([]);
     const [providers, setProviders] = useState<PluginProviderRead[]>([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    const fetchData = async () => {
+        setLoading(true);
+        setError(null);
+        try {
+            const [profileRes, workflowsRes, providersRes] = await Promise.all([
+                httpClient.get('/api/v1/me/profile'),
+                httpClient.get('/api/v1/workflows/'),
+                httpClient.get('/api/v1/plugins/providers')
+            ]);
+
+            setProfile(profileRes.data);
+            setProviders(providersRes.data);
+            
+            // Filter workflows created by this user
+            const myWorkflows = workflowsRes.data.filter((w: WorkflowRead) => w.user_id === profileRes.data.id);
+            setCreatedWorkflows(myWorkflows);
+        } catch (error) {
+            console.error("Failed to fetch profile data:", error);
+            setError("We couldn't load your profile data. Please check your connection and try again.");
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
         if (authLoading) return;
         if (!isAuthenticated) return;
 
-        const fetchData = async () => {
-            try {
-                const [profileRes, workflowsRes, providersRes] = await Promise.all([
-                    httpClient.get('/api/v1/me/profile'),
-                    httpClient.get('/api/v1/workflows/'),
-                    httpClient.get('/api/v1/plugins/providers')
-                ]);
-
-                setProfile(profileRes.data);
-                setProviders(providersRes.data);
-                
-                // Filter workflows created by this user
-                const myWorkflows = workflowsRes.data.filter((w: WorkflowRead) => w.user_id === profileRes.data.id);
-                setCreatedWorkflows(myWorkflows);
-            } catch (error) {
-                console.error("Failed to fetch profile data:", error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
         fetchData();
     }, [isAuthenticated, authLoading]);
 
-    if (authLoading || (isAuthenticated && loading)) {
+    if (authLoading || (isAuthenticated && loading && !error)) {
         return (
             <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
                 <Loader2 className="w-12 h-12 animate-spin text-indigo-600" />
                 <p className="text-zinc-500 font-medium animate-pulse">Loading your profile...</p>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-6">
+                <div className="w-20 h-20 bg-red-50 dark:bg-red-950/30 rounded-full flex items-center justify-center mb-6">
+                    <AlertCircle className="w-10 h-10 text-red-500" />
+                </div>
+                <h1 className="text-3xl font-black mb-2 tracking-tight">Oops! Something went wrong</h1>
+                <p className="text-zinc-500 mb-8 max-w-md">{error}</p>
+                <Button onClick={fetchData} size="lg" className="rounded-full px-8 gap-2">
+                    <RefreshCw size={18} />
+                    Try Again
+                </Button>
             </div>
         );
     }
@@ -121,7 +141,7 @@ export default function ProfilePage() {
                     
                     <div className="flex-1 text-center md:text-left">
                         <div className="flex flex-col md:flex-row md:items-center gap-3 mb-4">
-                            <h1 className="text-3xl md:text-5xl font-black tracking-tight">{profile?.username}</h1>
+                            <h1 className="text-3xl md:text-5xl font-black tracking-tight text-zinc-900 dark:text-white">{profile?.username}</h1>
                             {profile?.is_active && (
                                 <span className="inline-flex items-center px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold uppercase tracking-widest w-fit mx-auto md:mx-0">
                                     <span className="w-2 h-2 rounded-full bg-emerald-500 mr-2 animate-pulse"></span>
@@ -132,11 +152,11 @@ export default function ProfilePage() {
                         <div className="flex flex-col md:flex-row gap-4 text-zinc-500 font-medium">
                             <div className="flex items-center justify-center md:justify-start gap-2 text-sm">
                                 <Mail size={16} className="text-indigo-500" />
-                                <span>{profile?.email}</span>
+                                <span className="text-zinc-700 dark:text-zinc-300">{profile?.email}</span>
                             </div>
                             <div className="flex items-center justify-center md:justify-start gap-2 text-sm">
                                 <User size={16} className="text-violet-500" />
-                                <span>Member since {profile ? new Date().getFullYear() : '---'}</span>
+                                <span className="text-zinc-700 dark:text-zinc-300">Member since {profile ? new Date().getFullYear() : '---'}</span>
                             </div>
                         </div>
                     </div>
