@@ -81,9 +81,12 @@ export default function ConnectionsPage() {
                     `/api/v1/plugins/accounts/${provider.id}/oauth/auth-url`
                 );
                 if (res.data?.auth_url) {
-                    // Stash providerId so the callback page (in the popup) knows what to use
-                    localStorage.setItem('oauth_provider_id', provider.id);
-                    localStorage.setItem('oauth_is_new_tab', 'true');
+                    // Stash context in localStorage as many providers strip query params from redirect_uri
+                    if (typeof window !== 'undefined') {
+                        localStorage.setItem('oauth_provider_id', provider.id);
+                        localStorage.setItem('oauth_is_new_tab', 'true');
+                        localStorage.setItem('oauth_dest', '/connections');
+                    }
                     window.open(res.data.auth_url, '_blank');
                 }
             } catch (e) {

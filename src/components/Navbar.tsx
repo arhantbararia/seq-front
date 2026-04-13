@@ -47,8 +47,8 @@ export function Navbar() {
                         </Link>
                         
                         <div className="flex items-center gap-2 ml-4 pl-4 border-l border-zinc-200 dark:border-zinc-800">
-                            <Link href="/dashboard">
-                                <Button variant="ghost" size="icon" title="Dashboard">
+                            <Link href="/profile">
+                                <Button variant="ghost" size="icon" title="Profile">
                                     <User className="w-4 h-4" />
                                 </Button>
                             </Link>

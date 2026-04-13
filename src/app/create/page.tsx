@@ -90,18 +90,36 @@ function CreatePageInternal() {
 
                 // Check for restored state from sessionStorage
                 if (searchParams.get('state') === 'restored') {
-                    const saved = sessionStorage.getItem('pendingWorkflowCreate');
-                    if (saved) {
-                        const { triggerProvider, triggerCap, triggerConf, actionProvider, actionCap, actionConf } = JSON.parse(saved);
+                    const savedCreate = sessionStorage.getItem('pendingWorkflowCreate');
+                    const savedFull = sessionStorage.getItem('pendingWorkflow');
+                    
+                    if (savedCreate) {
+                        const { triggerProvider, triggerCap, triggerConf, actionProvider, actionCap, actionConf } = JSON.parse(savedCreate);
                         if (triggerProvider) setSelectedTriggerProvider(triggerProvider);
                         if (triggerCap) setSelectedTrigger(triggerCap);
                         if (triggerConf) setTriggerConfig(triggerConf);
                         if (actionProvider) setSelectedActionProvider(actionProvider);
                         if (actionCap) setSelectedAction(actionCap);
                         if (actionConf) setActionConfig(actionConf);
-                        
-                        // Clear storage so it doesn't happens on manual refreshes
                         sessionStorage.removeItem('pendingWorkflowCreate');
+                    } else if (savedFull) {
+                        const workflow = JSON.parse(savedFull);
+                        // Map back from the flat structure or full workflow structure
+                        if (workflow.trigger) {
+                            const tProv = providers.find(p => p.id === workflow.trigger.plugin_provider_id);
+                            const tCap = triggers.find(t => t.unique_key === workflow.trigger.capability_key);
+                            if (tProv) setSelectedTriggerProvider(tProv);
+                            if (tCap) setSelectedTrigger(tCap);
+                            if (workflow.trigger.config) setTriggerConfig(workflow.trigger.config);
+                        }
+                        if (workflow.action) {
+                            const aProv = providers.find(p => p.id === workflow.action.plugin_provider_id);
+                            const aCap = actions.find(a => a.unique_key === workflow.action.capability_key);
+                            if (aProv) setSelectedActionProvider(aProv);
+                            if (aCap) setSelectedAction(aCap);
+                            if (workflow.action.config) setActionConfig(workflow.action.config);
+                        }
+                        sessionStorage.removeItem('pendingWorkflow');
                     }
                 }
             } catch (err) {
@@ -240,17 +258,19 @@ function CreatePageInternal() {
     };
 
     const handleConnectProvider = async (provider: PluginProviderRead) => {
+        // ALWAYS stash current workflow state in sessionStorage before starting any auth flow
+        // This ensures progress is preserved if the page redirects (e.g., login or OAuth callback)
+        const stateToSave = {
+            triggerProvider: selectedTriggerProvider,
+            triggerCap: selectedTrigger,
+            triggerConf: triggerConfig,
+            actionProvider: selectedActionProvider,
+            actionCap: selectedAction,
+            actionConf: actionConfig
+        };
+        sessionStorage.setItem('pendingWorkflowCreate', JSON.stringify(stateToSave));
+
         if (!isAuthenticated) {
-            // Save state and redirect to login
-            const stateToSave = {
-                triggerProvider: selectedTriggerProvider,
-                triggerCap: selectedTrigger,
-                triggerConf: triggerConfig,
-                actionProvider: selectedActionProvider,
-                actionCap: selectedAction,
-                actionConf: actionConfig
-            };
-            sessionStorage.setItem('pendingWorkflowCreate', JSON.stringify(stateToSave));
             router.push(`/auth/login?next=/create&state=restored`);
             return;
         }
@@ -260,8 +280,15 @@ function CreatePageInternal() {
         // Priority 1: OAuth 2.0
         if (authTypes.includes('oauth2')) {
             try {
+                // Stash context in localStorage as many providers strip query params from redirect_uri
+                if (typeof window !== 'undefined') {
+                    localStorage.setItem('oauth_provider_id', provider.id);
+                    localStorage.setItem('oauth_is_new_tab', 'true');
+                    localStorage.setItem('oauth_dest', '/create?state=restored');
+                }
+
                 // Use a clean redirect URI that user can register in console
-                // We keep provider_id because it's needed by the callback page to identify the endpoint
+                // We still keep params in the URL as a fallback for browsers with private mode/restricted storage
                 const appUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin;
                 const redirectUri = `${appUrl}/auth/plugin/callback?provider_id=${provider.id}&is_new_tab=true&dest=/create&state=restored`;
                 

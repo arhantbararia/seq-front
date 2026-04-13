@@ -7,6 +7,7 @@ import { httpClient, setAccessToken } from '@/lib/httpClient';
 export interface User {
     id: string;
     email: string;
+    username: string;
     is_active?: boolean;
 }
 
@@ -16,7 +17,7 @@ interface AuthContextType {
     isLoading: boolean;
     login: (email: string, password: string, redirect?: string) => Promise<void>;
     loginWithToken: (accessToken: string, refreshToken?: string, redirect?: string) => Promise<void>;
-    register: (email: string, password: string, redirect?: string) => Promise<void>;
+    register: (email: string, password: string, username: string, redirect?: string) => Promise<void>;
     logout: () => Promise<void>;
     refreshUser: () => Promise<void>;
 }
@@ -102,8 +103,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
         await fetchMe();
         
-        const autoSaved = await handlePendingWorkflow();
-        router.push(autoSaved ? '/dashboard' : (redirect || '/dashboard'));
+        const hasPending = sessionStorage.getItem('pendingWorkflow') || sessionStorage.getItem('pendingWorkflowCreate');
+        if (hasPending) {
+            router.push('/create?state=restored');
+        } else {
+            router.push(redirect || '/dashboard');
+        }
     };
 
     const login = async (email: string, password: string, redirect?: string) => {
@@ -112,8 +117,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         await loginWithToken(access_token, refresh_token, redirect);
     };
 
-    const register = async (email: string, password: string, redirect?: string) => {
-        await httpClient.post('/api/v1/auth/register', { email, password });
+    const register = async (email: string, password: string, username: string, redirect?: string) => {
+        await httpClient.post('/api/v1/auth/register', { email, password, username });
         await login(email, password, redirect);
     };
 

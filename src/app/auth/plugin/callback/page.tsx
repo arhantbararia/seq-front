@@ -30,12 +30,16 @@ function PluginCallbackContent() {
         // Look for parameters in URL, then fallback to localStorage handoff state
         let providerId = searchParams.get('provider_id');
         let isNewTab = searchParams.get('is_new_tab') === 'true';
-        const dest = searchParams.get('dest') || '/dashboard';
+        let dest = searchParams.get('dest') || '/dashboard';
 
         if (typeof window !== 'undefined') {
             if (!providerId) providerId = localStorage.getItem('oauth_provider_id') || null;
             if (!searchParams.get('is_new_tab') && localStorage.getItem('oauth_is_new_tab') === 'true') {
                 isNewTab = true;
+            }
+            if (!searchParams.get('dest')) {
+                const stashedDest = localStorage.getItem('oauth_dest');
+                if (stashedDest) dest = stashedDest;
             }
         }
 
@@ -72,6 +76,7 @@ function PluginCallbackContent() {
                 if (typeof window !== 'undefined') {
                     localStorage.removeItem('oauth_provider_id');
                     localStorage.removeItem('oauth_is_new_tab');
+                    localStorage.removeItem('oauth_dest');
                 }
                 
                 setStatus('success');
