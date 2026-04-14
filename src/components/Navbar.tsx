@@ -103,7 +103,7 @@ export function Navbar() {
                                 <Link key={link.href} href={link.href} onClick={() => setIsMenuOpen(false)}>
                                     <div className="group flex items-center justify-between p-4 rounded-3xl bg-zinc-50 dark:bg-zinc-900 active:scale-95 transition-all">
                                         <div className="flex items-center gap-4 text-2xl font-black italic tracking-tight">
-                                            <link.icon className="text-indigo-500" size={24} />
+                                            <link.icon className="text-zinc-900 dark:text-white" size={24} />
                                             {link.name}
                                         </div>
                                         <ArrowRight className="opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -125,8 +125,8 @@ export function Navbar() {
                                 </div>
                             ) : (
                                 <div className="grid grid-cols-1 gap-4">
-                                    <Link href="/profile" onClick={() => setIsMenuOpen(false)} className="flex items-center gap-4 p-5 rounded-3xl border-2 border-zinc-100 dark:border-zinc-800">
-                                        <div className="w-12 h-12 rounded-full bg-indigo-500 flex items-center justify-center text-white">
+                                    <Link href="/profile" onClick={() => setIsMenuOpen(false)} className="flex items-center gap-4 p-5 rounded-3xl border-2 border-zinc-100 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors">
+                                        <div className="w-12 h-12 rounded-full bg-black dark:bg-white flex items-center justify-center text-white dark:text-black">
                                             <User size={24} />
                                         </div>
                                         <div className="text-left">
@@ -134,8 +134,8 @@ export function Navbar() {
                                             <div className="text-xs text-zinc-500">{user?.email}</div>
                                         </div>
                                     </Link>
-                                    <Link href="/connections" onClick={() => setIsMenuOpen(false)} className="flex items-center gap-4 p-5 rounded-3xl border-2 border-zinc-100 dark:border-zinc-800">
-                                        <div className="w-12 h-12 rounded-full bg-zinc-800 flex items-center justify-center text-white">
+                                    <Link href="/connections" onClick={() => setIsMenuOpen(false)} className="flex items-center gap-4 p-5 rounded-3xl border-2 border-zinc-100 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors">
+                                        <div className="w-12 h-12 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-black dark:text-white">
                                             <Settings size={24} />
                                         </div>
                                         <div className="text-left">
@@ -145,7 +145,7 @@ export function Navbar() {
                                     </Link>
                                     <Button 
                                         variant="outline" 
-                                        className="w-full h-16 rounded-3xl text-xl font-bold border-red-100 text-red-500 bg-red-50/50 hover:bg-red-50"
+                                        className="w-full h-16 rounded-3xl text-xl font-bold border-zinc-200 text-zinc-900 dark:border-zinc-800 dark:text-white hover:bg-zinc-100 dark:hover:bg-zinc-900"
                                         onClick={() => { logout(); setIsMenuOpen(false); }}
                                     >
                                         <LogOut size={20} className="mr-2" /> Logout
