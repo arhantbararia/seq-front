@@ -107,6 +107,13 @@ export default function WorkflowSetupPage() {
             }));
 
             try {
+                // Stash context in localStorage as many providers strip query params from redirect_uri
+                if (typeof window !== 'undefined') {
+                    localStorage.setItem('oauth_provider_id', provider.id);
+                    localStorage.setItem('oauth_is_new_tab', 'true');
+                    localStorage.setItem('oauth_dest', `/workflows/${workflowId}/setup`);
+                }
+
                 const appUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin;
                 const redirectUri = `${appUrl}/auth/plugin/callback?dest=/workflows/${workflowId}/setup&state=restored&provider_id=${provider.id}&is_new_tab=true`;
                 const res = await httpClient.get(`/api/v1/plugins/accounts/${provider.id}/oauth/auth-url?redirect_uri=${encodeURIComponent(redirectUri)}`);
@@ -207,7 +214,7 @@ export default function WorkflowSetupPage() {
                                     onChange={(name, val) => setConfig((prev: any) => ({ ...prev, [name]: val }))}
                                     availableVariables={type === 'action' ? (triggerCapability?.outputs || []).map((o: any) => ({
                                         name: `trigger.payload.${o.key}`,
-                                        label: `Ingredient: ${o.label}`
+                                        label: `Trigger token: ${o.label}`
                                     })) : []}
                                 />
                             </motion.div>
