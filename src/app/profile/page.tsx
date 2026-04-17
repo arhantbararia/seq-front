@@ -78,7 +78,20 @@ export default function ProfilePage() {
 
             if (workflowsResult.status === 'fulfilled' && profileResult.status === 'fulfilled') {
                 const myWorkflows = workflowsResult.value.data.filter((w: WorkflowRead) => w.user_id === profileResult.value.data.id);
-                setCreatedWorkflows(myWorkflows);
+                // overlay sessionStorage saved states
+                const merged = myWorkflows.map((w: WorkflowRead) => {
+                    try {
+                        const saved = sessionStorage.getItem(`workflow_state:${w.id}`);
+                        if (saved) {
+                            const parsed = JSON.parse(saved);
+                            if (typeof parsed.is_enabled === 'boolean') {
+                                return { ...w, is_enabled: parsed.is_enabled };
+                            }
+                        }
+                    } catch (e) {}
+                    return w;
+                });
+                setCreatedWorkflows(merged);
             }
 
             if (profileResult.status === 'rejected') {
@@ -136,12 +149,33 @@ export default function ProfilePage() {
                         const payload = res.value;
                         const idx = copy.findIndex(c => c.id === payload.id);
                         if (idx !== -1) {
-                            const respData = payload.data;
-                            if (respData && typeof respData.is_enabled === 'boolean') {
-                                copy[idx] = { ...copy[idx], is_enabled: respData.is_enabled };
-                            } else if (respData && respData.status) {
-                                copy[idx] = { ...copy[idx], is_enabled: respData.status === 'active' };
-                            }
+                                const respData = payload.data;
+                                try {
+                                    const key = `workflow_state:${copy[idx].id}`;
+                                    const saved = sessionStorage.getItem(key);
+                                    let savedVal: boolean | null = null;
+                                    if (saved) {
+                                        const parsed = JSON.parse(saved);
+                                        if (typeof parsed.is_enabled === 'boolean') savedVal = parsed.is_enabled;
+                                    }
+                                    const backendVal = (respData && typeof respData.is_enabled === 'boolean')
+                                        ? respData.is_enabled
+                                        : (respData && respData.status) ? respData.status === 'active' : null;
+
+                                    if (backendVal !== null && backendVal !== savedVal) {
+                                        try { sessionStorage.setItem(key, JSON.stringify({ is_enabled: backendVal, ts: Date.now() })); } catch(e) {}
+                                        copy[idx] = { ...copy[idx], is_enabled: backendVal };
+                                        try { localStorage.setItem(`workflow-toggle:${copy[idx].id}`, JSON.stringify({ is_enabled: backendVal, ts: Date.now() })); } catch(e) {}
+                                    } else if (backendVal !== null) {
+                                        copy[idx] = { ...copy[idx], is_enabled: backendVal };
+                                    }
+                                } catch (err) {
+                                    if (respData && typeof respData.is_enabled === 'boolean') {
+                                        copy[idx] = { ...copy[idx], is_enabled: respData.is_enabled };
+                                    } else if (respData && respData.status) {
+                                        copy[idx] = { ...copy[idx], is_enabled: respData.status === 'active' };
+                                    }
+                                }
                         }
                     }
                 });

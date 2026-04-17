@@ -35,7 +35,23 @@ export default function DashboardPage() {
             httpClient.get('/api/v1/plugins/accounts')
         ])
         .then(([subsRes, provRes, accRes]) => {
-            setSubscriptions(subsRes.data);
+            // initialize subscriptions, overlay sessionStorage saved states
+            const fetchedSubs: SubscriptionRead[] = subsRes.data;
+            const merged = fetchedSubs.map(s => {
+                try {
+                    const saved = sessionStorage.getItem(`workflow_state:${s.workflow.id}`);
+                    if (saved) {
+                        const parsed = JSON.parse(saved);
+                        if (typeof parsed.is_enabled === 'boolean') {
+                            return { ...s, is_active: parsed.is_enabled };
+                        }
+                    }
+                } catch (e) {
+                    // ignore parse errors
+                }
+                return s;
+            });
+            setSubscriptions(merged);
             setProviders(provRes.data);
             setAccounts(accRes.data.map((a: any) => a.plugin_provider_id));
         })
@@ -43,7 +59,7 @@ export default function DashboardPage() {
         .finally(() => setLoading(false));
     }, [isAuthenticated]);
 
-    // Poll statuses every 2 minutes
+        // Poll statuses every 2 minutes
     useEffect(() => {
         if (!isAuthenticated) return;
         let mounted = true;
@@ -62,10 +78,34 @@ export default function DashboardPage() {
                         const idx = copy.findIndex(c => c.id === payload.id);
                         if (idx !== -1) {
                             const respData = payload.data;
-                            if (respData && typeof respData.is_enabled === 'boolean') {
-                                copy[idx] = { ...copy[idx], is_active: respData.is_enabled };
-                            } else if (respData && respData.status) {
-                                copy[idx] = { ...copy[idx], is_active: respData.status === 'active' };
+                            // compare with sessionStorage first
+                            try {
+                                const key = `workflow_state:${copy[idx].workflow.id}`;
+                                const saved = sessionStorage.getItem(key);
+                                let savedVal: boolean | null = null;
+                                if (saved) {
+                                    const parsed = JSON.parse(saved);
+                                    if (typeof parsed.is_enabled === 'boolean') savedVal = parsed.is_enabled;
+                                }
+
+                                const backendVal = (respData && typeof respData.is_enabled === 'boolean')
+                                    ? respData.is_enabled
+                                    : (respData && respData.status) ? respData.status === 'active' : null;
+
+                                if (backendVal !== null && backendVal !== savedVal) {
+                                    // backend differs from session state — update sessionStorage and UI
+                                    try { sessionStorage.setItem(key, JSON.stringify({ is_enabled: backendVal, ts: Date.now() })); } catch(e) {}
+                                    copy[idx] = { ...copy[idx], is_active: backendVal };
+                                    try { localStorage.setItem(`workflow-toggle:${copy[idx].workflow.id}`, JSON.stringify({ is_enabled: backendVal, ts: Date.now() })); } catch(e) {}
+                                } else if (backendVal !== null) {
+                                    copy[idx] = { ...copy[idx], is_active: backendVal };
+                                }
+                            } catch (err) {
+                                if (respData && typeof respData.is_enabled === 'boolean') {
+                                    copy[idx] = { ...copy[idx], is_active: respData.is_enabled };
+                                } else if (respData && respData.status) {
+                                    copy[idx] = { ...copy[idx], is_active: respData.status === 'active' };
+                                }
                             }
                         }
                     }
@@ -82,6 +122,8 @@ export default function DashboardPage() {
         const newStatus = !sub.is_active;
         // Optimistic UI
         setSubscriptions(subs => subs.map(s => s.id === sub.id ? { ...s, is_active: newStatus } : s));
+        // persist in sessionStorage as authoritative per-session user choice
+        try { sessionStorage.setItem(`workflow_state:${sub.workflow.id}`, JSON.stringify({ is_enabled: newStatus, ts: Date.now() })); } catch(e) {}
         // skip polling for this subscription for 2 minutes
         setSkipUntil(prev => ({ ...prev, [sub.id]: Date.now() + 2 * 60 * 1000 }));
 
