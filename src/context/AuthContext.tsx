@@ -102,8 +102,41 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             localStorage.setItem('refresh_token', refreshToken);
         }
         await fetchMe();
-        
-        const hasPending = sessionStorage.getItem('pendingWorkflow') || sessionStorage.getItem('pendingWorkflowCreate');
+        // Migrate anon drafts into per-user keys if present
+        try {
+            const username = (await (async () => { const res = await httpClient.get('/api/v1/me'); return res.data.username; })()) as string;
+            // migrate pendingWorkflowCreate:anon -> pendingWorkflowCreate:{username}
+            const anonKey = 'pendingWorkflowCreate:anon';
+            const userKey = `pendingWorkflowCreate:${username}`;
+            const anonDraft = sessionStorage.getItem(anonKey);
+            const existingUserDraft = sessionStorage.getItem(userKey);
+            if (anonDraft && !existingUserDraft) {
+                try {
+                    const parsed = JSON.parse(anonDraft);
+                    parsed.owner = username;
+                    sessionStorage.setItem(userKey, JSON.stringify(parsed));
+                    sessionStorage.removeItem(anonKey);
+                } catch (e) {
+                    console.debug('Failed to migrate anon draft', e);
+                }
+            } else if (anonDraft && existingUserDraft) {
+                // archive to avoid overwrite
+                try { sessionStorage.setItem(anonKey + ':archived', anonDraft); sessionStorage.removeItem(anonKey); } catch(e) { }
+            }
+
+            // migrate pendingWorkflow (full) if present and no user copy
+            const anonFull = sessionStorage.getItem('pendingWorkflow');
+            const userFullKey = `pendingWorkflow:${username}`;
+            if (anonFull && !sessionStorage.getItem(userFullKey)) {
+                sessionStorage.setItem(userFullKey, anonFull);
+                sessionStorage.removeItem('pendingWorkflow');
+            }
+        } catch (e) {
+            console.debug('Migration check failed', e);
+        }
+
+        // If any pending workflow drafts exist (full or per-user), restore builder
+        const hasPending = !!sessionStorage.getItem('pendingWorkflow') || Object.keys(sessionStorage).some(k => k.startsWith('pendingWorkflowCreate:'));
         if (hasPending) {
             router.push('/create?state=restored');
         } else {

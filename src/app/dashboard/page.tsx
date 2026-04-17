@@ -24,6 +24,7 @@ export default function DashboardPage() {
     const [providers, setProviders] = useState<PluginProviderRead[]>([]);
     const [accounts, setAccounts] = useState<string[]>([]); // Connected provider_ids
     const [loading, setLoading] = useState(true);
+    const [skipUntil, setSkipUntil] = useState<Record<string, number>>({});
 
     useEffect(() => {
         if (!isAuthenticated) return;
@@ -42,9 +43,50 @@ export default function DashboardPage() {
         .finally(() => setLoading(false));
     }, [isAuthenticated]);
 
+    // Poll statuses every 2 minutes
+    useEffect(() => {
+        if (!isAuthenticated) return;
+        let mounted = true;
+        const poll = async () => {
+            const now = Date.now();
+            const work = subscriptions.filter(s => !(skipUntil[s.id] && skipUntil[s.id] > now));
+            if (work.length === 0) return;
+            const promises = work.map(s => httpClient.get(`/api/v1/workflows/${s.workflow.id}/status`).then(r => ({ id: s.id, data: r.data })).catch(e => ({ id: s.id, error: e })));
+            const results = await Promise.allSettled(promises);
+            if (!mounted) return;
+            setSubscriptions(prev => {
+                const copy = [...prev];
+                results.forEach((res: any) => {
+                    if (res.status === 'fulfilled') {
+                        const payload = res.value;
+                        const idx = copy.findIndex(c => c.id === payload.id);
+                        if (idx !== -1) {
+                            const respData = payload.data;
+                            if (respData && typeof respData.is_enabled === 'boolean') {
+                                copy[idx] = { ...copy[idx], is_active: respData.is_enabled };
+                            } else if (respData && respData.status) {
+                                copy[idx] = { ...copy[idx], is_active: respData.status === 'active' };
+                            }
+                        }
+                    }
+                });
+                return copy;
+            });
+        };
+
+        const id = setInterval(poll, 2 * 60 * 1000);
+        return () => { mounted = false; clearInterval(id); };
+    }, [isAuthenticated, subscriptions, skipUntil]);
+
     const handleToggle = async (sub: SubscriptionRead) => {
         const newStatus = !sub.is_active;
+        // Optimistic UI
         setSubscriptions(subs => subs.map(s => s.id === sub.id ? { ...s, is_active: newStatus } : s));
+        // skip polling for this subscription for 2 minutes
+        setSkipUntil(prev => ({ ...prev, [sub.id]: Date.now() + 2 * 60 * 1000 }));
+
+        // broadcast to other tabs/pages so profile view can update immediately
+        try { localStorage.setItem(`workflow-toggle:${sub.workflow.id}`, JSON.stringify({ is_enabled: newStatus, ts: Date.now() })); } catch(e) {}
 
         try {
             await httpClient.patch(`/api/v1/me/subscriptions/${sub.id}`, { is_enabled: newStatus });
@@ -194,7 +236,7 @@ export default function DashboardPage() {
         <div className="max-w-6xl mx-auto pb-32 pt-24 px-6">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-16">
                 <div>
-                    <h1 className="text-4xl md:text-5xl font-black tracking-tight mb-3">My Dashboard</h1>
+                    <h1 className="text-4xl md:text-5xl font-black tracking-tight mb-3">Automations</h1>
                     <p className="text-lg text-zinc-500 max-w-xl">Central hub for your personal creations and subscribed community automations.</p>
                 </div>
                 <Link href="/create">

@@ -6,6 +6,7 @@ import { useAuth } from "@/context/AuthContext";
 import { Settings, LogOut, User, Menu, X, Plus, Layers, Search, Zap } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
+import DarkModeToggle from "./ui/DarkModeToggle";
 
 export function Navbar() {
     const { user, isAuthenticated, isLoading, logout } = useAuth();
@@ -58,9 +59,11 @@ export function Navbar() {
                             <Link href="/auth/register">
                                 <Button variant="default" className="rounded-full px-6 font-bold bg-black dark:bg-white text-white dark:text-black">Sign Up</Button>
                             </Link>
+                            <DarkModeToggle />
                         </div>
                     ) : (
                         <div className="flex items-center gap-2 ml-4 pl-4 border-l border-zinc-200 dark:border-zinc-800">
+                            <DarkModeToggle />
                             <Link href="/profile">
                                 <Button variant="ghost" size="icon" title="Profile" className="rounded-full w-10 h-10">
                                     <User className="w-5 h-5" />

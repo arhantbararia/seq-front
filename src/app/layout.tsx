@@ -36,6 +36,7 @@ export default function RootLayout({
             {children}
           </main>
         </AuthProvider>
+        <script dangerouslySetInnerHTML={{ __html: `(function(){try{var t=localStorage.getItem('site:theme');if(t==='dark'){document.documentElement.setAttribute('data-theme','dark');document.documentElement.classList.add('dark');}else if(t==='light'){document.documentElement.setAttribute('data-theme','light');document.documentElement.classList.remove('dark');} }catch(e){} })()` }} />
       </body>
     </html>
   );

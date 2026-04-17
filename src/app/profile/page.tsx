@@ -100,6 +100,58 @@ export default function ProfilePage() {
         fetchData();
     }, [isAuthenticated, authLoading]);
 
+    // Listen for cross-tab workflow toggles to update UI immediately
+    useEffect(() => {
+        const handler = (e: StorageEvent) => {
+            if (!e.key) return;
+            if (e.key.startsWith('workflow-toggle:')) {
+                try {
+                    const payload = JSON.parse(e.newValue || 'null');
+                    const wfId = e.key.split(':')[1];
+                    if (!payload) return;
+                    setCreatedWorkflows(prev => prev.map(w => w.id === wfId ? { ...w, is_enabled: !!payload.is_enabled } : w));
+                } catch (err) {
+                    // ignore
+                }
+            }
+        };
+        window.addEventListener('storage', handler);
+        return () => window.removeEventListener('storage', handler);
+    }, []);
+
+    // Poll created workflow statuses every 2 minutes
+    useEffect(() => {
+        if (!isAuthenticated) return;
+        let mounted = true;
+        const poll = async () => {
+            const ids = createdWorkflows.map(w => w.id);
+            if (ids.length === 0) return;
+            const promises = ids.map(id => httpClient.get(`/api/v1/workflows/${id}/status`).then(r => ({ id, data: r.data })).catch(e => ({ id, error: e })));
+            const results = await Promise.allSettled(promises);
+            if (!mounted) return;
+            setCreatedWorkflows(prev => {
+                const copy = [...prev];
+                results.forEach((res: any) => {
+                    if (res.status === 'fulfilled') {
+                        const payload = res.value;
+                        const idx = copy.findIndex(c => c.id === payload.id);
+                        if (idx !== -1) {
+                            const respData = payload.data;
+                            if (respData && typeof respData.is_enabled === 'boolean') {
+                                copy[idx] = { ...copy[idx], is_enabled: respData.is_enabled };
+                            } else if (respData && respData.status) {
+                                copy[idx] = { ...copy[idx], is_enabled: respData.status === 'active' };
+                            }
+                        }
+                    }
+                });
+                return copy;
+            });
+        };
+        const id = setInterval(poll, 2 * 60 * 1000);
+        return () => { mounted = false; clearInterval(id); };
+    }, [isAuthenticated, createdWorkflows]);
+
     if (authLoading || (isAuthenticated && loading && !error)) {
         return (
             <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
@@ -267,7 +319,7 @@ export default function ProfilePage() {
                                         "px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter",
                                         workflow.is_enabled ? "bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30" : "bg-zinc-100 text-zinc-500 dark:bg-zinc-800"
                                     )}>
-                                        {workflow.is_enabled ? "Active" : "Paused"}
+                                        {workflow.is_enabled ? "running" : "Paused"}
                                     </div>
                                 </div>
 

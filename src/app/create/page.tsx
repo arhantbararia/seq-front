@@ -88,22 +88,25 @@ function CreatePageInternal() {
                     setAccounts(connectedProviderIds);
                 }
 
-                // Check for restored state from sessionStorage
-                if (searchParams.get('state') === 'restored') {
-                    const savedCreate = sessionStorage.getItem('pendingWorkflowCreate');
-                    const savedFull = sessionStorage.getItem('pendingWorkflow');
+                // helper key for per-user draft
+                            const createKey = () => `pendingWorkflowCreate:${user?.username || 'anon'}`;
+
+                            // Check for restored state from sessionStorage
+                            if (searchParams.get('state') === 'restored') {
+                                const savedCreate = sessionStorage.getItem(createKey());
+                                const savedFull = sessionStorage.getItem('pendingWorkflow');
                     
-                    if (savedCreate) {
-                        const { triggerProvider, triggerCap, triggerConf, actionProvider, actionCap, actionConf, view: savedView } = JSON.parse(savedCreate);
-                        if (triggerProvider) setSelectedTriggerProvider(triggerProvider);
-                        if (triggerCap) setSelectedTrigger(triggerCap);
-                        if (triggerConf) setTriggerConfig(triggerConf);
-                        if (actionProvider) setSelectedActionProvider(actionProvider);
-                        if (actionCap) setSelectedAction(actionCap);
-                        if (actionConf) setActionConfig(actionConf);
-                        if (savedView) setView(savedView);
-                        sessionStorage.removeItem('pendingWorkflowCreate');
-                    } else if (savedFull) {
+                                if (savedCreate) {
+                                    const { triggerProvider, triggerCap, triggerConf, actionProvider, actionCap, actionConf, view: savedView } = JSON.parse(savedCreate);
+                                    if (triggerProvider) setSelectedTriggerProvider(triggerProvider);
+                                    if (triggerCap) setSelectedTrigger(triggerCap);
+                                    if (triggerConf) setTriggerConfig(triggerConf);
+                                    if (actionProvider) setSelectedActionProvider(actionProvider);
+                                    if (actionCap) setSelectedAction(actionCap);
+                                    if (actionConf) setActionConfig(actionConf);
+                                    if (savedView) setView(savedView);
+                                    sessionStorage.removeItem(createKey());
+                                } else if (savedFull) {
                         const workflow = JSON.parse(savedFull);
                         // Map back from the flat structure or full workflow structure
                         if (workflow.trigger) {
@@ -160,7 +163,8 @@ function CreatePageInternal() {
             actionConf: actionConfig,
             view: view
         };
-        sessionStorage.setItem('pendingWorkflowCreate', JSON.stringify(state));
+        const key = `pendingWorkflowCreate:${user?.username || 'anon'}`;
+        sessionStorage.setItem(key, JSON.stringify({ ...state, owner: user?.username || 'anon', savedAt: Date.now() }));
     };
 
     const handleAuthSuccess = async () => {
