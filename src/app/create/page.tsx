@@ -224,15 +224,7 @@ function CreatePageInternal() {
             console.error(e);
         }
 
-        // Check connectivity
-        if (isAuthenticated) {
-            const isConnected = accounts.includes(plugin.id);
-            const requiresAuth = plugin.auth_types && !plugin.auth_types.includes('none');
-            
-            if (requiresAuth && !isConnected) {
-                handleConnectProvider(plugin);
-            }
-        }
+        // Do not auto-initiate provider connection here; require explicit user action.
         
         setView('trigger-function');
     };
@@ -261,15 +253,7 @@ function CreatePageInternal() {
             console.error(e);
         }
 
-        // Check connectivity
-        if (isAuthenticated) {
-            const isConnected = accounts.includes(plugin.id);
-            const requiresAuth = plugin.auth_types && !plugin.auth_types.includes('none');
-            
-            if (requiresAuth && !isConnected) {
-                handleConnectProvider(plugin);
-            }
-        }
+        // Do not auto-initiate provider connection here; require explicit user action.
 
         setView('action-function');
     };

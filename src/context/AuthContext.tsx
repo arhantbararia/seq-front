@@ -135,10 +135,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             console.debug('Migration check failed', e);
         }
 
-        // If any pending workflow drafts exist (full or per-user), restore builder
-        const hasPending = !!sessionStorage.getItem('pendingWorkflow') || Object.keys(sessionStorage).some(k => k.startsWith('pendingWorkflowCreate:'));
-        if (hasPending) {
-            router.push('/create?state=restored');
+        // Only redirect back to create with restored state if the login flow provided a create redirect
+        const shouldRestoreToCreate = typeof redirect === 'string' && redirect.includes('/create');
+        if (shouldRestoreToCreate) {
+            router.push(redirect);
         } else {
             router.push(redirect || '/dashboard');
         }
