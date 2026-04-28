@@ -74,23 +74,21 @@ function CreatePageInternal() {
     const [error, setError] = useState<string | null>(null);
 
     // Auth Modal State
-                                {(() => {
-                                    const logoUrl = getLogoUrl(provider);
-                                    return logoUrl ? (
-                                        <img
-                                            src={logoUrl}
-                                            alt={provider.name}
-                                            className="w-full h-full object-cover"
-                                            onError={(e) => {
-                                                (e.target as HTMLImageElement).style.display = 'none';
-                                                (e.target as HTMLImageElement).parentElement!.innerText = provider.name[0];
-                                            }}
-                                        />
-                                    ) : (
-                                        provider.name[0]
-                                    );
-                                })()}
-                const fetchedActions = actRes.data;
+    // Auth Modal State
+    const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+    const [authModalProvider, setAuthModalProvider] = useState<PluginProviderRead | null>(null);
+
+    useEffect(() => {
+        const loadData = async () => {
+            try {
+                const [provRes, trigRes, actRes] = await Promise.all([
+                    httpClient.get('/api/v1/plugins/providers'),
+                    httpClient.get('/api/v1/triggers'),
+                    httpClient.get('/api/v1/actions')
+                ]);
+                setProviders(provRes.data ?? []);
+                const fetchedTriggers = trigRes.data ?? [];
+                const fetchedActions = actRes.data ?? [];
                 setTriggers(fetchedTriggers);
                 setActions(fetchedActions);
 
@@ -100,56 +98,49 @@ function CreatePageInternal() {
                     setAccounts(connectedProviderIds);
                 }
 
-                // helper key for per-user draft
-                            const createKey = () => `pendingWorkflowCreate:${user?.username || 'anon'}`;
+                const createKey = () => `pendingWorkflowCreate:${user?.username || 'anon'}`;
 
-                            // Check for restored state from sessionStorage
-                            if (searchParams.get('state') === 'restored') {
-                                const savedCreate = sessionStorage.getItem(createKey());
-                                const savedFull = sessionStorage.getItem('pendingWorkflow');
-                    
-                                if (savedCreate) {
-                                    const { triggerProvider, triggerCap, triggerConf, actionProvider, actionCap, actionConf, view: savedView } = JSON.parse(savedCreate);
-                                    if (triggerProvider) setSelectedTriggerProvider(triggerProvider);
-                                    if (triggerCap) setSelectedTrigger(triggerCap);
-                                    if (triggerConf) setTriggerConfig(triggerConf);
-                                    if (actionProvider) setSelectedActionProvider(actionProvider);
-                                    if (actionCap) setSelectedAction(actionCap);
-                                    if (actionConf) setActionConfig(actionConf);
-                                    if (savedView) setView(savedView);
-                                    sessionStorage.removeItem(createKey());
-                                } else if (savedFull) {
+                if (searchParams.get('state') === 'restored') {
+                    const savedCreate = sessionStorage.getItem(createKey());
+                    const savedFull = sessionStorage.getItem('pendingWorkflow');
+
+                    if (savedCreate) {
+                        const { triggerProvider, triggerCap, triggerConf, actionProvider, actionCap, actionConf, view: savedView } = JSON.parse(savedCreate);
+                        if (triggerProvider) setSelectedTriggerProvider(triggerProvider);
+                        if (triggerCap) setSelectedTrigger(triggerCap);
+                        if (triggerConf) setTriggerConfig(triggerConf);
+                        if (actionProvider) setSelectedActionProvider(actionProvider);
+                        if (actionCap) setSelectedAction(actionCap);
+                        if (actionConf) setActionConfig(actionConf);
+                        if (savedView) setView(savedView);
+                        sessionStorage.removeItem(createKey());
+                    } else if (savedFull) {
                         const workflow = JSON.parse(savedFull);
-                        // Map back from the flat structure or full workflow structure
                         if (workflow.trigger) {
                             const tProv = providers.find(p => p.id === workflow.trigger.plugin_provider_id);
-                            const tCap = triggers.find(t => t.unique_key === workflow.trigger.capability_key);
+                            const tCap = fetchedTriggers.find((t: any) => t.unique_key === workflow.trigger.capability_key);
                             if (tProv) setSelectedTriggerProvider(tProv);
                             if (tCap) setSelectedTrigger(tCap);
-                            <Button
-                                variant="default"
-                                size="sm"
-                                className="gap-2 rounded-full overflow-hidden px-4"
-                                onClick={() => handleConnectProvider(provider)}
-                            >
-                                {!isAuthenticated ? (
-                                    "Login to Connect"
-                                ) : (
-                                    <>
-                                        {(() => {
-                                            const logoUrl = getLogoUrl(provider);
-                                            return logoUrl ? <img src={logoUrl} className="w-4 h-4 rounded-sm object-contain invert dark:invert-0" /> : null;
-                                        })()}
-                                        Connect {provider.name}
-                                    </>
-                                )}
-                            </Button>
+                            if (workflow.trigger.config) setTriggerConfig(workflow.trigger.config);
+                        }
+                        if (workflow.action) {
+                            const aProv = providers.find(p => p.id === workflow.action.plugin_provider_id);
+                            const aCap = fetchedActions.find((a: any) => a.unique_key === workflow.action.capability_key);
+                            if (aProv) setSelectedActionProvider(aProv);
+                            if (aCap) setSelectedAction(aCap);
+                            if (workflow.action.config) setActionConfig(workflow.action.config);
+                        }
+                        sessionStorage.removeItem('pendingWorkflow');
+                    }
+                }
+            } catch (err) {
+                console.error("Failed to fetch builder data", err);
+            } finally {
                 setDataLoading(false);
             }
         };
         loadData();
 
-        // Listen for new account connections from other tabs/windows
         const handleMessage = (event: MessageEvent) => {
             if (event.data?.type === 'account-connected') {
                 httpClient.get('/api/v1/plugins/accounts').then(accRes => {
