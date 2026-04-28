@@ -42,6 +42,15 @@ function CreatePageInternal() {
 
     // Data State
     const [providers, setProviders] = useState<PluginProviderRead[]>([]);
+    const getLogoUrl = (provider: PluginProviderRead) => {
+        if (provider.logo_url) return provider.logo_url;
+        if (provider.icon) {
+            if (provider.icon.startsWith('http')) return provider.icon;
+            const token = process.env.NEXT_PUBLIC_LOGO_DEV_TOKEN;
+            return token ? `https://img.logo.dev/${provider.icon}?token=${token}` : null;
+        }
+        return null;
+    };
     const [triggers, setTriggers] = useState<PluginCapabilityRead[]>([]);
     const [actions, setActions] = useState<PluginCapabilityRead[]>([]);
     const [accounts, setAccounts] = useState<string[]>([]); // Connected provider_ids
@@ -65,19 +74,22 @@ function CreatePageInternal() {
     const [error, setError] = useState<string | null>(null);
 
     // Auth Modal State
-    const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-    const [authModalProvider, setAuthModalProvider] = useState<PluginProviderRead | null>(null);
-
-    useEffect(() => {
-        const loadData = async () => {
-            try {
-                const [provRes, trigRes, actRes] = await Promise.all([
-                    httpClient.get('/api/v1/plugins/providers'),
-                    httpClient.get('/api/v1/triggers'),
-                    httpClient.get('/api/v1/actions')
-                ]);
-                setProviders(provRes.data);
-                const fetchedTriggers = trigRes.data;
+                                {(() => {
+                                    const logoUrl = getLogoUrl(provider);
+                                    return logoUrl ? (
+                                        <img
+                                            src={logoUrl}
+                                            alt={provider.name}
+                                            className="w-full h-full object-cover"
+                                            onError={(e) => {
+                                                (e.target as HTMLImageElement).style.display = 'none';
+                                                (e.target as HTMLImageElement).parentElement!.innerText = provider.name[0];
+                                            }}
+                                        />
+                                    ) : (
+                                        provider.name[0]
+                                    );
+                                })()}
                 const fetchedActions = actRes.data;
                 setTriggers(fetchedTriggers);
                 setActions(fetchedActions);
@@ -114,21 +126,24 @@ function CreatePageInternal() {
                             const tCap = triggers.find(t => t.unique_key === workflow.trigger.capability_key);
                             if (tProv) setSelectedTriggerProvider(tProv);
                             if (tCap) setSelectedTrigger(tCap);
-                            if (workflow.trigger.config) setTriggerConfig(workflow.trigger.config);
-                        }
-                        if (workflow.action) {
-                            const aProv = providers.find(p => p.id === workflow.action.plugin_provider_id);
-                            const aCap = actions.find(a => a.unique_key === workflow.action.capability_key);
-                            if (aProv) setSelectedActionProvider(aProv);
-                            if (aCap) setSelectedAction(aCap);
-                            if (workflow.action.config) setActionConfig(workflow.action.config);
-                        }
-                        sessionStorage.removeItem('pendingWorkflow');
-                    }
-                }
-            } catch (err) {
-                console.error("Failed to fetch builder data", err);
-            } finally {
+                            <Button
+                                variant="default"
+                                size="sm"
+                                className="gap-2 rounded-full overflow-hidden px-4"
+                                onClick={() => handleConnectProvider(provider)}
+                            >
+                                {!isAuthenticated ? (
+                                    "Login to Connect"
+                                ) : (
+                                    <>
+                                        {(() => {
+                                            const logoUrl = getLogoUrl(provider);
+                                            return logoUrl ? <img src={logoUrl} className="w-4 h-4 rounded-sm object-contain invert dark:invert-0" /> : null;
+                                        })()}
+                                        Connect {provider.name}
+                                    </>
+                                )}
+                            </Button>
                 setDataLoading(false);
             }
         };
@@ -355,19 +370,22 @@ function CreatePageInternal() {
                     <div className="flex items-start justify-between mb-4">
                         <div className="flex items-center gap-4">
                             <div className="w-12 h-12 rounded-xl flex items-center justify-center text-white shadow-lg bg-black dark:bg-white text-black font-bold overflow-hidden">
-                                {provider.logo_url ? (
-                                    <img 
-                                        src={provider.logo_url} 
-                                        alt={provider.name} 
-                                        className="w-full h-full object-cover" 
-                                        onError={(e) => {
-                                            (e.target as HTMLImageElement).style.display = 'none';
-                                            (e.target as HTMLImageElement).parentElement!.innerText = provider.name[0];
-                                        }}
-                                    />
-                                ) : (
-                                    provider.name[0]
-                                )}
+                                {(() => {
+                                    const logoUrl = getLogoUrl(provider);
+                                    return logoUrl ? (
+                                        <img
+                                            src={logoUrl}
+                                            alt={provider.name}
+                                            className="w-full h-full object-cover"
+                                            onError={(e) => {
+                                                (e.target as HTMLImageElement).style.display = 'none';
+                                                (e.target as HTMLImageElement).parentElement!.innerText = provider.name[0];
+                                            }}
+                                        />
+                                    ) : (
+                                        provider.name[0]
+                                    );
+                                })()}
                             </div>
                             <div>
                                 <h3 className="text-xl font-bold">{cap.name}</h3>
@@ -404,17 +422,20 @@ function CreatePageInternal() {
                         )}
 
                         {!authOk && (
-                            <Button 
-                                variant="default" 
-                                size="sm" 
-                                className="gap-2 rounded-full overflow-hidden px-4" 
+                            <Button
+                                variant="default"
+                                size="sm"
+                                className="gap-2 rounded-full overflow-hidden px-4"
                                 onClick={() => handleConnectProvider(provider)}
                             >
                                 {!isAuthenticated ? (
                                     "Login to Connect"
                                 ) : (
                                     <>
-                                        {provider.logo_url && <img src={provider.logo_url} className="w-4 h-4 rounded-sm object-contain invert dark:invert-0" />}
+                                        {(() => {
+                                            const logoUrl = getLogoUrl(provider);
+                                            return logoUrl ? <img src={logoUrl} className="w-4 h-4 rounded-sm object-contain invert dark:invert-0" /> : null;
+                                        })()}
                                         Connect {provider.name}
                                     </>
                                 )}

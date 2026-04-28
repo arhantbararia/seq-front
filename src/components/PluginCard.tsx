@@ -72,6 +72,18 @@ export function PluginCard({ plugin, onClick, selected }: PluginCardProps) {
     const IconComponent = iconMap[plugin.icon] || Globe;
     const bgClass = getDeterministicColor(plugin.name);
 
+    const getLogoUrl = () => {
+        if (plugin.logo_url) return plugin.logo_url;
+        if (plugin.icon) {
+            if (plugin.icon.startsWith('http')) return plugin.icon;
+            const token = process.env.NEXT_PUBLIC_LOGO_DEV_TOKEN;
+            return token ? `https://img.logo.dev/${plugin.icon}?token=${token}` : null;
+        }
+        return null;
+    };
+
+    const logoUrl = getLogoUrl();
+
     return (
         <motion.div
             whileHover={{ scale: 1.05 }}
@@ -83,8 +95,21 @@ export function PluginCard({ plugin, onClick, selected }: PluginCardProps) {
                 selected ? "ring-4 ring-offset-4 ring-black dark:ring-white scale-105" : ""
             )}
         >
-            <div className="bg-white/20 p-3 rounded-2xl w-fit backdrop-blur-sm">
-                <IconComponent size={32} className="text-white" />
+            <div className="bg-white/20 p-3 rounded-2xl w-fit backdrop-blur-sm overflow-hidden">
+                {logoUrl ? (
+                    <img
+                        src={logoUrl}
+                        alt={plugin.name}
+                        className="w-8 h-8 object-cover"
+                        onError={(e) => {
+                            (e.target as HTMLImageElement).style.display = 'none';
+                            (e.target as HTMLImageElement).parentElement!.innerHTML =
+                                `<span class="text-xl font-bold uppercase">${plugin.name[0]}</span>`;
+                        }}
+                    />
+                ) : (
+                    <IconComponent size={32} className="text-white" />
+                )}
             </div>
             <div>
                 <h3 className="text-xl font-bold leading-tight truncate">{plugin.name}</h3>
