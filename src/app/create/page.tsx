@@ -12,6 +12,7 @@ import { ChevronLeft, Check, Zap, Play, Loader2, Link2 } from "lucide-react";
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { cn } from "@/lib/utils";
+import { getProviderLogoUrl } from "@/lib/providerBrands";
 
 type ViewState =
     | 'root'
@@ -43,13 +44,7 @@ function CreatePageInternal() {
     // Data State
     const [providers, setProviders] = useState<PluginProviderRead[]>([]);
     const getLogoUrl = (provider: PluginProviderRead) => {
-        if (provider.logo_url) return provider.logo_url;
-        if (provider.icon) {
-            if (provider.icon.startsWith('http')) return provider.icon;
-            const token = process.env.NEXT_PUBLIC_LOGO_DEV_TOKEN;
-            return token ? `https://img.logo.dev/${provider.icon}?token=${token}` : null;
-        }
-        return null;
+        return getProviderLogoUrl(provider.icon, provider.logo_url);
     };
     const [triggers, setTriggers] = useState<PluginCapabilityRead[]>([]);
     const [actions, setActions] = useState<PluginCapabilityRead[]>([]);

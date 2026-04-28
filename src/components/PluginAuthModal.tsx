@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { httpClient } from '@/lib/httpClient';
+import { getProviderLogoUrl, getProviderColor } from '@/lib/providerBrands';
 
 interface PluginAuthModalProps {
     isOpen: boolean;
@@ -134,17 +135,7 @@ export function PluginAuthModal({ isOpen, onClose, provider, onSuccess }: Plugin
         }
     };
 
-    const getLogoUrl = () => {
-        if (provider.logo_url) return provider.logo_url;
-        if (provider.icon) {
-            if (provider.icon.startsWith('http')) return provider.icon;
-            const token = process.env.NEXT_PUBLIC_LOGO_DEV_TOKEN;
-            return token ? `https://img.logo.dev/${provider.icon}?token=${token}` : null;
-        }
-        return null;
-    };
-
-    const logoUrl = getLogoUrl();
+    const logoUrl = getProviderLogoUrl(provider.icon || '', provider.logo_url);
 
     return (
         <AnimatePresence>
@@ -169,12 +160,12 @@ export function PluginAuthModal({ isOpen, onClose, provider, onSuccess }: Plugin
                         {/* Header */}
                         <div className="p-8 pb-0 flex items-start justify-between">
                             <div className="flex items-center gap-4">
-                                <div className="w-14 h-14 rounded-2xl bg-zinc-100 dark:bg-zinc-900 flex items-center justify-center overflow-hidden border border-zinc-200 dark:border-zinc-800 shadow-inner">
+                                <div className="w-14 h-14 rounded-2xl flex items-center justify-center overflow-hidden border shadow-inner" style={{ backgroundColor: getProviderColor(provider.name), borderColor: 'rgba(255,255,255,0.1)' }}>
                                     {logoUrl ? (
                                         <img
                                             src={logoUrl}
                                             alt={provider.name}
-                                            className="w-full h-full object-cover"
+                                            className="w-9 h-9 object-contain"
                                             onError={(e) => {
                                                 (e.target as HTMLImageElement).style.display = 'none';
                                                 (e.target as HTMLImageElement).parentElement!.innerHTML =

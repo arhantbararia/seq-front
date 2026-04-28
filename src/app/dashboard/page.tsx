@@ -9,6 +9,7 @@ import Link from "next/link";
 import { ArrowRight, Plus, Loader2, Zap, Layers } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
+import { getProviderLogoUrl, getProviderColor } from "@/lib/providerBrands";
 
 interface SubscriptionRead {
     id: string;
@@ -168,6 +169,32 @@ export default function DashboardPage() {
 
     const getProviderName = (id: string) => providers.find(p => p.id === id)?.name || id;
     const getProviderInitial = (id: string) => getProviderName(id).charAt(0).toUpperCase();
+    const getProviderById = (id: string) => providers.find(p => p.id === id);
+
+    const renderProviderCircle = (providerId: string) => {
+        const provider = getProviderById(providerId);
+        if (!provider) return <span className="uppercase">{getProviderInitial(providerId)}</span>;
+        const logoUrl = getProviderLogoUrl(provider.icon, provider.logo_url);
+        const color = getProviderColor(provider.name);
+        return (
+            <div className="w-full h-full rounded-full flex items-center justify-center overflow-hidden" style={{ backgroundColor: color }}>
+                {logoUrl ? (
+                    <img
+                        src={logoUrl}
+                        alt={provider.name}
+                        className="w-7 h-7 object-contain"
+                        onError={(e) => {
+                            (e.target as HTMLImageElement).style.display = 'none';
+                            (e.target as HTMLImageElement).parentElement!.innerHTML =
+                                `<span class="text-white text-sm font-bold uppercase">${provider.name[0]}</span>`;
+                        }}
+                    />
+                ) : (
+                    <span className="text-white text-sm font-bold uppercase">{provider.name[0]}</span>
+                )}
+            </div>
+        );
+    };
 
     if (!isAuthenticated) {
         return (
@@ -212,8 +239,8 @@ export default function DashboardPage() {
                 <div className="flex items-center justify-between mb-6">
                     <div className="flex -space-x-3 items-center">
                         <div className="relative group/trigger">
-                            <div className="w-12 h-12 rounded-full flex items-center justify-center text-black font-bold shadow-md border-4 border-white dark:border-zinc-950 bg-zinc-100 dark:bg-zinc-800 z-10 uppercase overflow-hidden">
-                                {getProviderInitial(workflow.trigger?.plugin_provider_id)}
+                            <div className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold shadow-md border-4 border-white dark:border-zinc-950 z-10 overflow-hidden">
+                                {renderProviderCircle(workflow.trigger?.plugin_provider_id)}
                             </div>
                             <div className={cn(
                                 "absolute -top-1 -right-1 w-4 h-4 rounded-full border-2 border-white dark:border-zinc-950 transition-all duration-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]",
@@ -223,8 +250,8 @@ export default function DashboardPage() {
                             )} title="Trigger Connected" />
                         </div>
                         <div className="relative group/action">
-                            <div className="w-12 h-12 rounded-full flex items-center justify-center text-black font-bold shadow-md border-4 border-white dark:border-zinc-950 bg-zinc-200 dark:bg-zinc-700 z-0 uppercase overflow-hidden">
-                                {getProviderInitial(workflow.action?.plugin_provider_id)}
+                            <div className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold shadow-md border-4 border-white dark:border-zinc-950 z-0 overflow-hidden">
+                                {renderProviderCircle(workflow.action?.plugin_provider_id)}
                             </div>
                             <div className={cn(
                                 "absolute -top-1 -right-1 w-4 h-4 rounded-full border-2 border-white dark:border-zinc-950 transition-all duration-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]",

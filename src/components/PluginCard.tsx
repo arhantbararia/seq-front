@@ -1,6 +1,13 @@
 'use client';
 
+import { useState } from "react";
 import { cn } from "@/lib/utils";
+import {
+    getProviderLogoUrl,
+    getProviderColor,
+    tintColor,
+    isGenericIcon,
+} from "@/lib/providerBrands";
 import {
     Webhook, Clock, Rss, Mail, Globe, Twitter,
     Facebook, Youtube, Music, Instagram, Camera,
@@ -12,6 +19,7 @@ import { motion } from "framer-motion";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const iconMap: Record<string, React.FC<any>> = {
+    default: Globe,
     webhook: Webhook,
     clock: Clock,
     rss: Rss,
@@ -36,21 +44,6 @@ const iconMap: Record<string, React.FC<any>> = {
     github: Github,
 };
 
-const colorMap = [
-    "bg-zinc-900 border border-zinc-800 text-white",
-    "bg-blue-600 border border-blue-500 text-white",
-    "bg-emerald-600 border border-emerald-500 text-white",
-    "bg-purple-600 border border-purple-500 text-white",
-    "bg-orange-600 border border-orange-500 text-white",
-    "bg-rose-600 border border-rose-500 text-white"
-];
-
-const getDeterministicColor = (text: string) => {
-    let hash = 0;
-    for (let i = 0; i < text.length; i++) hash = text.charCodeAt(i) + ((hash << 5) - hash);
-    return colorMap[Math.abs(hash) % colorMap.length];
-};
-
 export interface PluginProviderRead {
     id: string;
     name: string;
@@ -69,51 +62,76 @@ interface PluginCardProps {
 }
 
 export function PluginCard({ plugin, onClick, selected }: PluginCardProps) {
-    const IconComponent = iconMap[plugin.icon] || Globe;
-    const bgClass = getDeterministicColor(plugin.name);
+    const [imgLoaded, setImgLoaded] = useState(false);
+    const [imgError, setImgError] = useState(false);
 
-    const getLogoUrl = () => {
-        if (plugin.logo_url) return plugin.logo_url;
-        if (plugin.icon) {
-            if (plugin.icon.startsWith('http')) return plugin.icon;
-            const token = process.env.NEXT_PUBLIC_LOGO_DEV_TOKEN;
-            return token ? `https://img.logo.dev/${plugin.icon}?token=${token}` : null;
-        }
-        return null;
-    };
+    const logoUrl = getProviderLogoUrl(plugin.icon, plugin.logo_url);
+    const brandColor = getProviderColor(plugin.name);
+    const brandTint = tintColor(brandColor, 0.08);
+    const showLogo = logoUrl && !imgError;
+    const genericIcon = isGenericIcon(plugin.icon);
 
-    const logoUrl = getLogoUrl();
+    // Resolve fallback Lucide icon
+    const IconComponent = iconMap[plugin.icon?.toLowerCase()] || Globe;
 
     return (
         <motion.div
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+            whileHover={{ scale: 1.04, y: -2 }}
+            whileTap={{ scale: 0.97 }}
             onClick={() => onClick && onClick(plugin)}
             className={cn(
-                "cursor-pointer overflow-hidden rounded-3xl p-6 shadow-xl transition-all relative aspect-[4/3] flex flex-col justify-between",
-                bgClass,
+                "cursor-pointer overflow-hidden rounded-3xl p-6 shadow-lg transition-all relative aspect-[4/3] flex flex-col justify-between border",
                 selected ? "ring-4 ring-offset-4 ring-black dark:ring-white scale-105" : ""
             )}
+            style={{
+                backgroundColor: brandColor,
+                borderColor: brandTint,
+                color: "#fff",
+            }}
         >
-            <div className="bg-white/20 p-3 rounded-2xl w-fit backdrop-blur-sm overflow-hidden">
-                {logoUrl ? (
-                    <img
-                        src={logoUrl}
-                        alt={plugin.name}
-                        className="w-8 h-8 object-cover"
-                        onError={(e) => {
-                            (e.target as HTMLImageElement).style.display = 'none';
-                            (e.target as HTMLImageElement).parentElement!.innerHTML =
-                                `<span class="text-xl font-bold uppercase">${plugin.name[0]}</span>`;
-                        }}
-                    />
-                ) : (
-                    <IconComponent size={32} className="text-white" />
-                )}
+            {/* Subtle gradient overlay for depth */}
+            <div
+                className="absolute inset-0 pointer-events-none"
+                style={{
+                    background: `linear-gradient(135deg, rgba(255,255,255,0.12) 0%, rgba(0,0,0,0.15) 100%)`,
+                }}
+            />
+
+            {/* Icon container */}
+            <div className="relative z-10">
+                <div className="bg-white/20 p-3 rounded-2xl w-fit backdrop-blur-sm overflow-hidden">
+                    {showLogo ? (
+                        <img
+                            src={logoUrl}
+                            alt={plugin.name}
+                            className={cn(
+                                "w-8 h-8 object-contain transition-opacity duration-300",
+                                imgLoaded ? "opacity-100" : "opacity-0"
+                            )}
+                            onLoad={() => setImgLoaded(true)}
+                            onError={() => setImgError(true)}
+                        />
+                    ) : (
+                        genericIcon ? (
+                            <IconComponent size={32} className="text-white" />
+                        ) : (
+                            <span className="text-xl font-bold uppercase text-white w-8 h-8 flex items-center justify-center">
+                                {plugin.name[0]}
+                            </span>
+                        )
+                    )}
+
+                    {/* Show Lucide icon while image is loading */}
+                    {showLogo && !imgLoaded && (
+                        <IconComponent size={32} className="text-white absolute inset-0 m-auto" />
+                    )}
+                </div>
             </div>
-            <div>
+
+            {/* Text */}
+            <div className="relative z-10">
                 <h3 className="text-xl font-bold leading-tight truncate">{plugin.name}</h3>
-                <p className="opacity-90 mt-1 font-medium text-sm">
+                <p className="opacity-80 mt-1 font-medium text-sm">
                     {plugin.supports_trigger && "Triggers "}
                     {plugin.supports_trigger && plugin.supports_action && "• "}
                     {plugin.supports_action && "Actions"}

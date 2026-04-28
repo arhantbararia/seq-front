@@ -6,6 +6,7 @@ import { httpClient } from "@/lib/httpClient";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { PluginAuthModal } from "@/components/PluginAuthModal";
+import { getProviderLogoUrl, getProviderColor } from "@/lib/providerBrands";
 import { Plus, Link2, X, Zap } from "lucide-react";
 
 interface PluginProvider {
@@ -135,15 +136,7 @@ export default function ConnectionsPage() {
     const unconnectedProviders = providers.filter(p => !connectedProviderIds.has(p.id));
 
     const getLogoUrl = (provider: PluginProvider) => {
-        if (provider.logo_url) return provider.logo_url;
-        if (provider.icon) {
-            // If icon looks like a URL already, use it directly
-            if (provider.icon.startsWith('http')) return provider.icon;
-            // Otherwise treat it as a logo.dev domain hint
-            const token = process.env.NEXT_PUBLIC_LOGO_DEV_TOKEN;
-            return token ? `https://img.logo.dev/${provider.icon}?token=${token}` : null;
-        }
-        return null;
+        return getProviderLogoUrl(provider.icon || '', provider.logo_url);
     };
 
     if (loading || authLoading) {
@@ -191,12 +184,12 @@ export default function ConnectionsPage() {
                                     className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-[2rem] p-8 shadow-sm flex flex-col justify-between group hover:shadow-xl transition-all hover:-translate-y-1"
                                 >
                                     <div className="flex items-center gap-4 mb-6">
-                                        <div className="w-14 h-14 rounded-2xl bg-zinc-100 dark:bg-zinc-900 flex items-center justify-center overflow-hidden border border-zinc-200 dark:border-zinc-800 shadow-inner">
+                                        <div className="w-14 h-14 rounded-2xl flex items-center justify-center overflow-hidden border shadow-inner" style={{ backgroundColor: getProviderColor(provider.name), borderColor: 'rgba(255,255,255,0.1)' }}>
                                             {logoUrl ? (
                                                 <img
                                                     src={logoUrl}
                                                     alt={provider.name}
-                                                    className="w-full h-full object-cover"
+                                                    className="w-9 h-9 object-contain"
                                                     onError={(e) => {
                                                         (e.target as HTMLImageElement).style.display = 'none';
                                                         (e.target as HTMLImageElement).parentElement!.innerHTML =
@@ -282,12 +275,12 @@ export default function ConnectionsPage() {
                                         <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
                                             <Plus size={20} className="text-zinc-400" />
                                         </div>
-                                        <div className="w-16 h-16 rounded-2xl bg-zinc-50 dark:bg-zinc-900 flex items-center justify-center mb-4 border border-zinc-100 dark:border-zinc-800 group-hover:scale-110 transition-transform duration-500 overflow-hidden shadow-inner">
+                                        <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4 border group-hover:scale-110 transition-transform duration-500 overflow-hidden shadow-inner" style={{ backgroundColor: getProviderColor(provider.name), borderColor: 'rgba(255,255,255,0.1)' }}>
                                             {logoUrl ? (
                                                 <img
                                                     src={logoUrl}
                                                     alt={provider.name}
-                                                    className="w-full h-full object-cover"
+                                                    className="w-10 h-10 object-contain"
                                                     onError={(e) => {
                                                         (e.target as HTMLImageElement).style.display = 'none';
                                                         (e.target as HTMLImageElement).parentElement!.innerHTML =
