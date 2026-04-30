@@ -3,9 +3,10 @@
  *
  * Maps plugin provider names → brand colors and fallback icon identifiers.
  * The backend `icon` field contains either:
- *   - A logo.dev domain (e.g. "youtube.com") for brand providers
  *   - A generic Lucide icon key (e.g. "clock", "webhook", "bell") for utility providers
  *   - "default" for unmapped providers
+ *
+ * For brand providers, the backend provides the simple icons slug in the `icon` field.
  *
  * This module provides the color/styling layer on top of that.
  */
@@ -63,7 +64,7 @@ const GENERIC_ICON_KEYS = new Set([
 ]);
 
 /**
- * Returns true if the icon value is a generic Lucide key (not a logo.dev domain).
+ * Returns true if the icon value is a generic Lucide key.
  */
 export function isGenericIcon(icon: string): boolean {
     if (!icon) return true;
@@ -71,24 +72,17 @@ export function isGenericIcon(icon: string): boolean {
 }
 
 /**
- * Build the logo.dev URL for a provider's icon field.
- * Returns null if the icon is generic (should use Lucide instead).
+ * Build the Simple Icons URL for a provider's icon.
+ * Returns null if the icon is generic (Lucide) or not provided.
  */
-export function getProviderLogoUrl(icon: string, logoUrl?: string): string | null {
-    // Explicit logo_url always wins
-    if (logoUrl) return logoUrl;
-    if (!icon) return null;
-
-    // Already a full URL
-    if (icon.startsWith("http")) return icon;
-
-    // Generic icons → no logo.dev URL
-    if (isGenericIcon(icon)) return null;
-
-    // It's a logo.dev domain
-    const token = process.env.NEXT_PUBLIC_LOGO_DEV_TOKEN;
-    if (!token) return null;
-    return `https://img.logo.dev/${icon}?token=${token}&size=64`;
+export function getServiceIcon(icon?: string | null, isDark?: boolean): string | null {
+    if (!icon || isGenericIcon(icon)) return null;
+    
+    // We can use a colored Simple Icon (e.g., white for dark theme, or the brand color)
+    // The user suggested isDark ? 'ffffff' : '111111'
+    const color = isDark ? 'ffffff' : '111111';
+    
+    return `https://cdn.simpleicons.org/${icon}/${color}`;
 }
 
 /**

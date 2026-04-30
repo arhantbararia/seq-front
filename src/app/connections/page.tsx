@@ -6,7 +6,7 @@ import { httpClient } from "@/lib/httpClient";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { PluginAuthModal } from "@/components/PluginAuthModal";
-import { getProviderLogoUrl, getProviderColor } from "@/lib/providerBrands";
+import { getServiceIcon, getProviderColor } from "@/lib/providerBrands";
 import { Plus, Link2, X, Zap } from "lucide-react";
 
 interface PluginProvider {
@@ -136,7 +136,8 @@ export default function ConnectionsPage() {
     const unconnectedProviders = providers.filter(p => !connectedProviderIds.has(p.id));
 
     const getLogoUrl = (provider: PluginProvider) => {
-        return getProviderLogoUrl(provider.icon || '', provider.logo_url);
+        const serviceIconUrl = getServiceIcon(provider.icon, true);
+        return provider.logo_url || serviceIconUrl;
     };
 
     if (loading || authLoading) {

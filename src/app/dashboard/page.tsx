@@ -9,7 +9,7 @@ import Link from "next/link";
 import { ArrowRight, Plus, Loader2, Zap, Layers } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
-import { getProviderLogoUrl, getProviderColor } from "@/lib/providerBrands";
+import { getServiceIcon, getProviderColor } from "@/lib/providerBrands";
 
 interface SubscriptionRead {
     id: string;
@@ -174,7 +174,8 @@ export default function DashboardPage() {
     const renderProviderCircle = (providerId: string) => {
         const provider = getProviderById(providerId);
         if (!provider) return <span className="uppercase">{getProviderInitial(providerId)}</span>;
-        const logoUrl = getProviderLogoUrl(provider.icon, provider.logo_url);
+        const serviceIconUrl = getServiceIcon(provider.icon, true);
+        const logoUrl = provider.logo_url || serviceIconUrl;
         const color = getProviderColor(provider.name);
         return (
             <div className="w-full h-full rounded-full flex items-center justify-center overflow-hidden" style={{ backgroundColor: color }}>

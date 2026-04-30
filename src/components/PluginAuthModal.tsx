@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { httpClient } from '@/lib/httpClient';
-import { getProviderLogoUrl, getProviderColor } from '@/lib/providerBrands';
+import { getServiceIcon, getProviderColor } from '@/lib/providerBrands';
 
 interface PluginAuthModalProps {
     isOpen: boolean;
@@ -135,7 +135,8 @@ export function PluginAuthModal({ isOpen, onClose, provider, onSuccess }: Plugin
         }
     };
 
-    const logoUrl = getProviderLogoUrl(provider.icon || '', provider.logo_url);
+    const serviceIconUrl = getServiceIcon(provider.icon, true);
+    const logoUrl = provider.logo_url || serviceIconUrl;
 
     return (
         <AnimatePresence>

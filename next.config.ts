@@ -8,7 +8,7 @@ const nextConfig: NextConfig = {
 
   images: {
     remotePatterns: [
-      { protocol: "https", hostname: "img.logo.dev" },
+      { protocol: "https", hostname: "cdn.simpleicons.org" },
     ],
   },
 };

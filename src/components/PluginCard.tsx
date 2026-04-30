@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import {
-    getProviderLogoUrl,
+    getServiceIcon,
     getProviderColor,
     tintColor,
     isGenericIcon,
@@ -65,7 +65,10 @@ export function PluginCard({ plugin, onClick, selected }: PluginCardProps) {
     const [imgLoaded, setImgLoaded] = useState(false);
     const [imgError, setImgError] = useState(false);
 
-    const logoUrl = getProviderLogoUrl(plugin.icon, plugin.logo_url);
+    // The plugin card uses a colored background and white text, so we ask for white icons.
+    const serviceIconUrl = getServiceIcon(plugin.icon, true);
+    const logoUrl = plugin.logo_url || serviceIconUrl;
+    
     const brandColor = getProviderColor(plugin.name);
     const brandTint = tintColor(brandColor, 0.08);
     const showLogo = logoUrl && !imgError;
