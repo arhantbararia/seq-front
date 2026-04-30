@@ -173,6 +173,13 @@ function RegisterForm() {
             </form>
 
             <SocialAuth />
+            <p className="mt-4 text-sm text-neutral-500">
+                By creating an account, you agree to our{' '}
+                <Link href="/terms-and-privacy" className="text-black font-medium hover:underline">
+                    Terms & Privacy
+                </Link>
+                .
+            </p>
         </AuthLayout>
     );
 }
