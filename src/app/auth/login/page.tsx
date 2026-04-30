@@ -20,6 +20,10 @@ function LoginForm() {
         password: "",
     });
 
+    const nextParam = searchParams.get('next') || undefined;
+    const stateParam = searchParams.get('state');
+    const redirectUrl = (nextParam && stateParam) ? `${nextParam}?state=${stateParam}` : nextParam;
+
     useEffect(() => {
         const errorParam = searchParams.get("error");
         if (errorParam) {
@@ -38,12 +42,6 @@ function LoginForm() {
         setIsLoading(true);
 
         try {
-            const next = searchParams.get('next') || undefined;
-            const state = searchParams.get('state');
-            
-            // Build redirect URL if state is present
-            const redirectUrl = (next && state) ? `${next}?state=${state}` : next;
-            
             await login(formData.email, formData.password, redirectUrl);
         } catch (err: any) {
             const detail = err.response?.data?.detail;
@@ -104,7 +102,7 @@ function LoginForm() {
                 </Button>
             </form>
 
-            <SocialAuth />
+            <SocialAuth redirectUrl={redirectUrl} />
             <p className="mt-4 text-sm text-neutral-500">
                 By signing in, you agree to our{' '}
                 <Link href="/terms-and-privacy" className="text-black font-medium hover:underline">

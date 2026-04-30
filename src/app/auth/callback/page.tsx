@@ -14,7 +14,9 @@ function CallbackContent() {
         const token = searchParams.get("access_token") || searchParams.get("token");
         const refreshToken = searchParams.get("refresh_token") || undefined;
         if (token) {
-            loginWithToken(token, refreshToken);
+            const redirectUrl = sessionStorage.getItem('post_google_auth_redirect');
+            if (redirectUrl) sessionStorage.removeItem('post_google_auth_redirect');
+            loginWithToken(token, refreshToken, redirectUrl || undefined);
         } else {
             // Handle error or missing token
             router.push("/auth/login?error=InvalidCallback");

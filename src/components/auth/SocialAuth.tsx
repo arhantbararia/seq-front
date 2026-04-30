@@ -3,8 +3,11 @@
 import React from "react";
 import { Button } from "./Button";
 
-export function SocialAuth() {
+export function SocialAuth({ redirectUrl }: { redirectUrl?: string }) {
     const handleGoogleLogin = () => {
+        if (redirectUrl) {
+            sessionStorage.setItem('post_google_auth_redirect', redirectUrl);
+        }
         const backendUrl = (process.env.NEXT_PUBLIC_BACKEND_URL || '').replace(/\/api\/v1\/?$/, '');
         window.location.href = `${backendUrl}/api/v1/auth/google/login`;
     };

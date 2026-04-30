@@ -25,6 +25,10 @@ function RegisterForm() {
         confirmPassword: "",
     });
 
+    const nextParam = searchParams.get('next') || undefined;
+    const stateParam = searchParams.get('state');
+    const redirectUrl = (nextParam && stateParam) ? `${nextParam}?state=${stateParam}` : nextParam;
+
     const checkUsername = async (username: string) => {
         if (username.length < 3) {
             setUsernameError("Username must be at least 3 characters");
@@ -95,10 +99,6 @@ function RegisterForm() {
         setIsLoading(true);
 
         try {
-            const next = searchParams.get('next') || undefined;
-            const state = searchParams.get('state');
-            const redirectUrl = (next && state) ? `${next}?state=${state}` : next;
-
             await register(formData.email, formData.password, formData.username, redirectUrl);
         } catch (err: any) {
             const detail = err.response?.data?.detail;
@@ -172,7 +172,7 @@ function RegisterForm() {
                 </Button>
             </form>
 
-            <SocialAuth />
+            <SocialAuth redirectUrl={redirectUrl} />
             <p className="mt-4 text-sm text-neutral-500">
                 By creating an account, you agree to our{' '}
                 <Link href="/terms-and-privacy" className="text-black font-medium hover:underline">

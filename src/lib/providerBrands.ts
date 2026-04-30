@@ -11,13 +11,15 @@
  * This module provides the color/styling layer on top of that.
  */
 
+import { X } from "lucide-react";
+
 // ── Brand color map keyed by lowercase provider name ──
 // Colors sourced from official brand guidelines.
 export const PROVIDER_BRAND_COLORS: Record<string, string> = {
     youtube: "#FF0000",
     spotify: "#1DB954",
     github: "#181717",
-    "x.com": "#000000",
+    X: "#000000",
     telegram: "#26A5E4",
     reddit: "#FF4500",
     gmail: "#EA4335",
