@@ -239,6 +239,7 @@ function CreatePageInternal() {
     };
 
     const handleTriggerConfigSubmit = () => {
+        // Validation (though triggers usually don't have tokens, just in case)
         setView('root');
         scrollToActions();
     };
@@ -268,6 +269,26 @@ function CreatePageInternal() {
     };
 
     const handleActionConfigSubmit = () => {
+        const availableVars = (selectedTrigger?.outputs || []).map((o: any) => `trigger.payload.${o.key}`);
+        let hasInvalidTokens = false;
+
+        for (const [key, val] of Object.entries(actionConfig)) {
+            const matches = val.match(/{{(.*?)}}/g);
+            if (matches) {
+                for (const m of matches) {
+                    const inner = m.slice(2, -2).trim();
+                    if (inner.startsWith('trigger.payload.') && !availableVars.includes(inner)) {
+                        hasInvalidTokens = true;
+                    }
+                }
+            }
+        }
+
+        if (hasInvalidTokens) {
+            alert("Please fix invalid tokens before proceeding.");
+            return;
+        }
+
         setView('root');
     };
 
@@ -485,7 +506,6 @@ function CreatePageInternal() {
                     {provTriggers.map(t => (
                         <div key={t.unique_key} onClick={() => handleTriggerSelect(t)} className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 p-6 rounded-3xl cursor-pointer hover:shadow-xl transition-all hover:-translate-y-1">
                             <h3 className="font-bold text-lg">{t.name}</h3>
-                            <p className="text-zinc-500 text-sm mt-2">{t.description}</p>
                         </div>
                     ))}
                 </div>
@@ -493,19 +513,27 @@ function CreatePageInternal() {
         } else if (view === 'trigger-config') {
             title = `Configure ${selectedTrigger?.name}`;
             content = (
-                <div className="w-full max-w-2xl bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-8 shadow-sm mx-auto">
-                    {selectedTrigger?.config_fields && selectedTrigger.config_fields.length > 0 ? (
-                        <ConfigForm
-                            fields={selectedTrigger.config_fields}
-                            values={triggerConfig}
-                            onChange={(name, value) => setTriggerConfig(prev => ({ ...prev, [name]: value }))}
-                        />
-                    ) : (
-                        <p className="text-zinc-500 text-center py-8">No specific configuration needed for this trigger.</p>
-                    )}
-                    <Button className="w-full mt-8" size="lg" onClick={handleTriggerConfigSubmit}>
-                        Done <Check size={18} className="ml-2" />
-                    </Button>
+                <div className="flex flex-col lg:flex-row gap-8 w-full max-w-4xl mx-auto">
+                    <div className="flex-1 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-8 shadow-sm">
+                        {selectedTrigger?.config_fields && selectedTrigger.config_fields.length > 0 ? (
+                            <ConfigForm
+                                fields={selectedTrigger.config_fields}
+                                values={triggerConfig}
+                                onChange={(name, value) => setTriggerConfig(prev => ({ ...prev, [name]: value }))}
+                            />
+                        ) : (
+                            <p className="text-zinc-500 text-center py-8">No specific configuration needed for this trigger.</p>
+                        )}
+                        <Button className="w-full mt-8" size="lg" onClick={handleTriggerConfigSubmit}>
+                            Done <Check size={18} className="ml-2" />
+                        </Button>
+                    </div>
+                    <div className="w-full lg:w-1/3 space-y-4">
+                        <div className="bg-zinc-50 dark:bg-zinc-900 rounded-3xl p-6 border border-zinc-200 dark:border-zinc-800">
+                            <h4 className="font-bold text-lg mb-2">About</h4>
+                            <p className="text-zinc-500 text-sm">{selectedTrigger?.description || "No description available."}</p>
+                        </div>
+                    </div>
                 </div>
             );
         } else if (view === 'action-provider') {
@@ -525,7 +553,6 @@ function CreatePageInternal() {
                     {provActions.map(a => (
                         <div key={a.unique_key} onClick={() => handleActionSelect(a)} className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 p-6 rounded-3xl cursor-pointer hover:shadow-xl transition-all hover:-translate-y-1">
                             <h3 className="font-bold text-lg">{a.name}</h3>
-                            <p className="text-zinc-500 text-sm mt-2">{a.description}</p>
                         </div>
                     ))}
                 </div>
@@ -533,23 +560,31 @@ function CreatePageInternal() {
         } else if (view === 'action-config') {
             title = `Configure ${selectedAction?.name}`;
             content = (
-                <div className="w-full max-w-2xl bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-8 shadow-sm mx-auto">
-                    {selectedAction?.config_fields && selectedAction.config_fields.length > 0 ? (
-                        <ConfigForm
-                            fields={selectedAction.config_fields}
-                            values={actionConfig}
-                            onChange={(name, value) => setActionConfig(prev => ({ ...prev, [name]: value }))}
-                            availableVariables={(selectedTrigger?.outputs || []).map((o: any) => ({
-                                name: `trigger.payload.${o.key}`,
-                                label: `Trigger token: ${o.label}`
-                            }))}
-                        />
-                    ) : (
-                        <p className="text-zinc-500 text-center py-8">No specific configuration needed for this action.</p>
-                    )}
-                    <Button className="w-full mt-8" size="lg" onClick={handleActionConfigSubmit}>
-                        Done <Check size={18} className="ml-2" />
-                    </Button>
+                <div className="flex flex-col lg:flex-row gap-8 w-full max-w-4xl mx-auto">
+                    <div className="flex-1 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-8 shadow-sm">
+                        {selectedAction?.config_fields && selectedAction.config_fields.length > 0 ? (
+                            <ConfigForm
+                                fields={selectedAction.config_fields}
+                                values={actionConfig}
+                                onChange={(name, value) => setActionConfig(prev => ({ ...prev, [name]: value }))}
+                                availableVariables={(selectedTrigger?.outputs || []).map((o: any) => ({
+                                    name: `trigger.payload.${o.key}`,
+                                    label: `Trigger token: ${o.label}`
+                                }))}
+                            />
+                        ) : (
+                            <p className="text-zinc-500 text-center py-8">No specific configuration needed for this action.</p>
+                        )}
+                        <Button className="w-full mt-8" size="lg" onClick={handleActionConfigSubmit}>
+                            Done <Check size={18} className="ml-2" />
+                        </Button>
+                    </div>
+                    <div className="w-full lg:w-1/3 space-y-4">
+                        <div className="bg-zinc-50 dark:bg-zinc-900 rounded-3xl p-6 border border-zinc-200 dark:border-zinc-800">
+                            <h4 className="font-bold text-lg mb-2">About</h4>
+                            <p className="text-zinc-500 text-sm">{selectedAction?.description || "No description available."}</p>
+                        </div>
+                    </div>
                 </div>
             );
         }

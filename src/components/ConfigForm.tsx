@@ -19,9 +19,25 @@ interface ConfigFormProps {
 }
 
 export function ConfigForm({ fields, values, onChange, availableVariables }: ConfigFormProps) {
+    const getInvalidTokens = (val: string) => {
+        if (!availableVariables) return [];
+        const matches = val.match(/{{(.*?)}}/g);
+        if (!matches) return [];
+        const validNames = availableVariables.map(v => v.name);
+        return matches.filter(m => {
+            const inner = m.slice(2, -2).trim();
+            if (inner.startsWith('trigger.payload.')) {
+                return !validNames.includes(inner);
+            }
+            return false;
+        });
+    };
+
     return (
         <div className="space-y-4">
-            {fields.map((field) => (
+            {fields.map((field) => {
+                const invalidTokens = getInvalidTokens(values[field.name] || '');
+                return (
                 <div key={field.name} className="space-y-2">
                     <Label htmlFor={field.name}>{field.label}</Label>
                     {field.type === 'select' ? (
@@ -70,8 +86,13 @@ export function ConfigForm({ fields, values, onChange, availableVariables }: Con
                             )}
                         </div>
                     )}
+                    {invalidTokens.length > 0 && (
+                        <p className="text-xs text-red-500 mt-1">
+                            Invalid tokens: {invalidTokens.join(', ')}. Please use valid tokens from the dropdown.
+                        </p>
+                    )}
                 </div>
-            ))}
+            )})}
         </div>
     );
 }

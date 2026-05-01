@@ -142,17 +142,7 @@ export default function DashboardPage() {
         }
     };
 
-    const handleExecute = async (e: React.MouseEvent, workflowId: string) => {
-        e.preventDefault();
-        e.stopPropagation();
-        try {
-            await httpClient.post(`/api/v1/workflows/${workflowId}/execute`);
-            alert("Execution triggered successfully!");
-        } catch (err) {
-            console.error(err);
-            alert("Failed to execute workflow.");
-        }
-    };
+
 
     const handleUnsubscribe = async (e: React.MouseEvent, subId: string) => {
         e.preventDefault();
@@ -282,12 +272,8 @@ export default function DashboardPage() {
                     </p>
                 </Link>
 
-                <div className="mt-6 pt-4 border-t border-zinc-100 dark:border-zinc-800 flex items-center justify-between text-sm font-medium text-zinc-500">
-                    <span className="text-xs font-bold opacity-60 uppercase tracking-widest">{workflow.user_id === user?.id ? "Personal" : "Community"}</span>
+                <div className="mt-6 pt-4 border-t border-zinc-100 dark:border-zinc-800 flex items-center justify-end text-sm font-medium text-zinc-500">
                     <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
-                        <Button variant="ghost" size="sm" onClick={(e) => handleExecute(e, workflow.id)} className="h-8 rounded-lg text-xs font-bold hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors">
-                            Test Run
-                        </Button>
                         <Button variant="ghost" size="sm" onClick={(e) => handleUnsubscribe(e, sub.id)} className="h-8 rounded-lg text-xs font-bold text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
                             Delete
                         </Button>
