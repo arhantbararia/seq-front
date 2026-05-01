@@ -23,6 +23,9 @@ function LoginForm() {
     const nextParam = searchParams.get('next') || undefined;
     const stateParam = searchParams.get('state');
     const redirectUrl = (nextParam && stateParam) ? `${nextParam}?state=${stateParam}` : nextParam;
+    
+    const searchString = searchParams.toString();
+    const registerUrl = `/auth/register${searchString ? `?${searchString}` : ''}`;
 
     useEffect(() => {
         const errorParam = searchParams.get("error");
@@ -63,7 +66,7 @@ function LoginForm() {
             subheading={
                 <>
                     Don&apos;t have an account?{" "}
-                    <Link href="/auth/register" className="text-black font-bold hover:underline">
+                    <Link href={registerUrl} className="text-black font-bold hover:underline">
                         Sign up
                     </Link>
                 </>

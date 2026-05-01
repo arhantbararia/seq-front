@@ -10,7 +10,12 @@ function CallbackContent() {
     const router = useRouter();
     const { loginWithToken } = useAuth();
 
+    const hasRun = React.useRef(false);
+
     useEffect(() => {
+        if (hasRun.current) return;
+        hasRun.current = true;
+
         const token = searchParams.get("access_token") || searchParams.get("token");
         const refreshToken = searchParams.get("refresh_token") || undefined;
         if (token) {

@@ -98,7 +98,7 @@ function CreatePageInternal() {
 
                 if (searchParams.get('state') === 'restored') {
                     const savedCreate = sessionStorage.getItem(createKey());
-                    const savedFull = sessionStorage.getItem('pendingWorkflow');
+                    const savedFull = sessionStorage.getItem(`pendingWorkflow:${user?.username}`) || sessionStorage.getItem('pendingWorkflow');
 
                     if (savedCreate) {
                         const { triggerProvider, triggerCap, triggerConf, actionProvider, actionCap, actionConf, view: savedView } = JSON.parse(savedCreate);
@@ -126,6 +126,7 @@ function CreatePageInternal() {
                             if (aCap) setSelectedAction(aCap);
                             if (workflow.action.config) setActionConfig(workflow.action.config);
                         }
+                        sessionStorage.removeItem(`pendingWorkflow:${user?.username}`);
                         sessionStorage.removeItem('pendingWorkflow');
                     }
                 }
@@ -299,7 +300,7 @@ function CreatePageInternal() {
 
         if (!isAuthenticated) {
             sessionStorage.setItem('pendingWorkflow', JSON.stringify(workflowData));
-            router.push('/auth/signup');
+            router.push('/auth/register?next=/create&state=restored');
             return;
         }
 

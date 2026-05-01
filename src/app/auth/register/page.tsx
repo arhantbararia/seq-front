@@ -29,6 +29,9 @@ function RegisterForm() {
     const stateParam = searchParams.get('state');
     const redirectUrl = (nextParam && stateParam) ? `${nextParam}?state=${stateParam}` : nextParam;
 
+    const searchString = searchParams.toString();
+    const loginUrl = `/auth/login${searchString ? `?${searchString}` : ''}`;
+
     const checkUsername = async (username: string) => {
         if (username.length < 3) {
             setUsernameError("Username must be at least 3 characters");
@@ -120,7 +123,7 @@ function RegisterForm() {
             subheading={
                 <>
                     Already have an account?{" "}
-                    <Link href="/auth/login" className="text-black font-bold hover:underline">
+                    <Link href={loginUrl} className="text-black font-bold hover:underline">
                         Sign in
                     </Link>
                 </>
