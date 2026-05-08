@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { httpClient } from "@/lib/httpClient";
 import { PluginProviderRead } from "@/components/PluginCard";
+import { ProviderAvatar } from "@/components/ProviderAvatar";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -73,9 +74,8 @@ export default function ExplorePage() {
         fetchWorkflows();
     }, [fetchWorkflows]);
 
-    const getProviderIcon = (providerId: string) => {
-        const p = providers.find(x => x.id === providerId);
-        return p ? p.icon : "globe"; // For now return string name, rendering will happen via IconMap if we extract it
+    const getProvider = (providerId: string) => {
+        return providers.find(x => x.id === providerId) || null;
     };
 
     return (
@@ -132,19 +132,15 @@ export default function ExplorePage() {
                                     transition={{ delay: 0.05 * (idx % limit) }}
                                     className="group block border border-zinc-200 dark:border-zinc-800 rounded-3xl p-6 hover:shadow-xl transition-all hover:-translate-y-1 bg-white dark:bg-zinc-900"
                                 >
-                                    <h3 className="font-bold text-xl mb-2 line-clamp-1">{wf.name}</h3>
+                                    <h3 className="font-bold text-xl mb-2 leading-tight break-words">{wf.name}</h3>
                                     <p className="text-zinc-500 text-sm mb-6 line-clamp-2 min-h-[40px]">
                                         {wf.description || "No description provided."}
                                     </p>
                                     
                                     <div className="flex items-center justify-between mt-auto">
                                         <div className="flex -space-x-2">
-                                            <div className="w-8 h-8 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center border-2 border-white dark:border-zinc-900 z-10 text-xs">
-                                                {getProviderIcon(wf.trigger?.plugin_provider_id)?.charAt(0).toUpperCase()}
-                                            </div>
-                                            <div className="w-8 h-8 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center border-2 border-white dark:border-zinc-900 z-0 text-xs">
-                                                {getProviderIcon(wf.action?.plugin_provider_id)?.charAt(0).toUpperCase()}
-                                            </div>
+                                            <ProviderAvatar provider={getProvider(wf.trigger?.plugin_provider_id)} className="z-10" />
+                                            <ProviderAvatar provider={getProvider(wf.action?.plugin_provider_id)} className="z-0" />
                                         </div>
                                         
                                         <div className="text-sm font-medium text-zinc-500 bg-zinc-100 dark:bg-zinc-800 px-3 py-1 rounded-full">
