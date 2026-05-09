@@ -42,13 +42,14 @@ body {
 #nprogress .bar {
   background: #06b6d4 !important; /* Cyan-500 */
   height: 3px !important;
-  /* Position exactly under the fixed navbar (~72px). Let's use 73px to account for borders */
-  top: 73px !important;
-  z-index: 1000 !important;
+  /* Navbar is exactly 69px tall (36px text + 32px padding + 1px border) */
+  top: 69px !important;
+  z-index: 99 !important;
 }
 
 #nprogress .peg {
   box-shadow: 0 0 10px #06b6d4, 0 0 5px #06b6d4 !important;
+  transform: none !important;
 }
 
 #nprogress .spinner-icon {
