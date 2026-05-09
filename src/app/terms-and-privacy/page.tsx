@@ -23,6 +23,33 @@ export default function TermsAndPrivacyPage() {
       </section>
 
       <section className="mb-8">
+        <h2 className="text-2xl font-semibold mb-3">BETA Release — Important Notice</h2>
+        <p>
+          This project is currently in <strong>BETA</strong>. Beta features and integrations are
+          experimental and may change, be disabled, or removed at any time. You should not rely on
+          the service for critical production workloads while it is in beta.
+        </p>
+
+        <p className="mt-3">
+          During the Beta period we may modify or delete data (including accounts, content, or
+          integration settings) without prior notice. You should back up any important data and
+          exercise caution when granting permissions to third-party services or plugins. Carefully
+          review requested scopes and permissions before authorizing access.
+        </p>
+
+        <p className="mt-3">
+          By using the service during Beta, you acknowledge and accept the potential risks,
+          including data loss or instability, and agree that maintainers are not responsible for
+          consequential losses arising from Beta usage to the fullest extent permitted by law.
+        </p>
+
+        <p className="mt-3">
+          We welcome feedback and bug reports from Beta users — please open issues or PRs in the
+          project repository to help improve the project.
+        </p>
+      </section>
+
+      <section className="mb-8">
         <h2 className="text-2xl font-semibold mb-3">2. Terms of Service</h2>
         <h3 className="font-medium mt-3">Acceptable Use</h3>
         <p>
