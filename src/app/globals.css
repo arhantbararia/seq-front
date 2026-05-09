@@ -45,8 +45,8 @@ body {
 
 #nprogress .bar {
   background: linear-gradient(90deg, #06b6d4, #0891b2) !important;
-  height: 2px !important;
-  top: 65px !important;
+  height: 3px !important;
+  top: 73px !important;
   z-index: 1000 !important;
   box-shadow: 0 0 15px rgba(6, 182, 212, 0.6), 0 0 8px rgba(6, 182, 212, 0.4) !important;
 }
