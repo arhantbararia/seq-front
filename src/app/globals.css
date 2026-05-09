@@ -42,9 +42,9 @@ body {
 #nprogress .bar {
   background: #06b6d4 !important; /* Cyan-500 */
   height: 3px !important;
-  /* Navbar is exactly 69px tall (36px text + 32px padding + 1px border) */
-  top: 69px !important;
-  z-index: 99 !important;
+  /* Navbar is 73px tall (40px button + 32px padding + 1px border) */
+  top: 73px !important;
+  z-index: 1000 !important;
 }
 
 #nprogress .peg {
