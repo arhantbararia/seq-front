@@ -201,12 +201,7 @@ export default function DashboardPage() {
     }
 
     if (loading) {
-        return (
-            <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
-                <Loader2 className="w-12 h-12 animate-spin text-indigo-600" />
-                <p className="text-zinc-500 font-medium animate-pulse">Loading your dashboard...</p>
-            </div>
-        );
+        return null;
     }
 
     const myWorkflows = subscriptions.filter(s => s.workflow.user_id === user?.id);

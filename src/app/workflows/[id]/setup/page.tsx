@@ -12,7 +12,6 @@ import {
     Zap, 
     Play, 
     Check, 
-    Loader2, 
     ArrowRight,
     Settings2,
     Lock
@@ -143,12 +142,7 @@ export default function WorkflowSetupPage() {
     };
 
     if (loading || authLoading) {
-        return (
-            <div className="max-w-4xl mx-auto px-6 py-24 min-h-screen flex flex-col items-center justify-center">
-                <Loader2 className="w-12 h-12 animate-spin text-zinc-300 mb-4" />
-                <p className="text-zinc-500 font-medium animate-pulse">Preparing configuration...</p>
-            </div>
-        );
+        return null;
     }
 
     const triggerProvider = providers.find(p => p.id === workflow.trigger?.plugin_provider_id);
@@ -280,7 +274,7 @@ export default function WorkflowSetupPage() {
                                 onClick={handleSubscribe}
                                 disabled={!hasTriggerConn || !hasActionConn || subscribing}
                             >
-                                {subscribing ? <Loader2 className="animate-spin" /> : "Finish & Subscribe"}
+                                Finish & Subscribe
                             </Button>
                         </div>
                     </motion.div>

@@ -35,3 +35,23 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* NProgress styling */
+@import "nprogress/nprogress.css";
+
+#nprogress .bar {
+  background: #06b6d4 !important; /* Cyan-500 */
+  height: 3px !important;
+  /* Position exactly under the fixed navbar (~72px). Let's use 73px to account for borders */
+  top: 73px !important;
+  z-index: 99 !important;
+}
+
+#nprogress .peg {
+  box-shadow: 0 0 10px #06b6d4, 0 0 5px #06b6d4 !important;
+}
+
+#nprogress .spinner-icon {
+  border-top-color: #06b6d4 !important;
+  border-left-color: #06b6d4 !important;
+}

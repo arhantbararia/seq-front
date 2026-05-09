@@ -10,7 +10,7 @@ import { useAuth } from "@/context/AuthContext";
 import {
     ChevronLeft, Zap, Play, Users,
     Calendar, Check, Trash2, Edit3,
-    Power, Loader2, Info, ArrowRight,
+    Power, Info, ArrowRight,
     User as UserIcon, ShieldAlert
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -320,7 +320,7 @@ export default function WorkflowDetailPage() {
                                             className={cn("w-full h-14 rounded-2xl text-base font-bold gap-2", workflow.is_enabled ? "bg-amber-500 hover:bg-amber-600" : "bg-emerald-500 hover:bg-emerald-600")}
                                             disabled={isActionLoading}
                                         >
-                                            {isActionLoading ? <Loader2 className="animate-spin" /> : <Power size={18} />}
+                                            <Power size={18} />
                                             {workflow.is_enabled ? "Pause Workflow" : "Enable Workflow"}
                                         </Button>
                                         <Button variant="outline" className="w-full h-14 rounded-2xl text-base font-bold gap-2 bg-transparent border-white/20 hover:bg-white/5" onClick={handleEdit}>
@@ -345,7 +345,7 @@ export default function WorkflowDetailPage() {
                                             className={cn("w-full h-14 rounded-2xl text-base font-bold gap-2", workflow.is_enabled ? "bg-zinc-700 hover:bg-zinc-600" : "bg-emerald-500 hover:bg-emerald-600")}
                                             disabled={isActionLoading}
                                         >
-                                            {isActionLoading ? <Loader2 className="animate-spin" /> : <Power size={18} />}
+                                            <Power size={18} />
                                             {workflow.is_enabled ? "Turn Off" : "Turn On"}
                                         </Button>
                                         <Button variant="ghost" className="w-full h-14 rounded-2xl text-base font-bold gap-2 text-rose-400 hover:text-rose-500 hover:bg-rose-500/10" onClick={handleUnsubscribe}>
@@ -361,7 +361,7 @@ export default function WorkflowDetailPage() {
                                             onClick={handleSubscribe}
                                             disabled={isActionLoading}
                                         >
-                                            {isActionLoading ? <Loader2 className="animate-spin" /> : "Use this workflow"}
+                                            Use this workflow
                                         </Button>
                                         <p className="mt-4 text-center text-xs text-white/40 font-medium">By using this workflow, you agree to our terms and conditions.</p>
                                     </motion.div>

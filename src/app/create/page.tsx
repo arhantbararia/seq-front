@@ -459,7 +459,7 @@ function CreatePageInternal() {
     // --- Main Render ---
 
     if (dataLoading) {
-        return <div className="flex items-center justify-center min-h-[60vh]"><Loader2 className="w-8 h-8 animate-spin text-zinc-400" /></div>;
+        return null;
     }
 
     if (view === 'success') {
@@ -710,7 +710,7 @@ function CreatePageInternal() {
 
 export default function CreatePage() {
     return (
-        <Suspense fallback={<div className="flex items-center justify-center min-h-[60vh]"><Loader2 className="w-8 h-8 animate-spin text-zinc-400" /></div>}>
+        <Suspense fallback={null}>
             <CreatePageInternal />
         </Suspense>
     );

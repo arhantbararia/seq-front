@@ -1,4 +1,9 @@
 import axios from 'axios';
+import NProgress from 'nprogress';
+
+if (typeof window !== 'undefined') {
+    NProgress.configure({ showSpinner: false });
+}
 
 let inMemoryAccessToken: string | null = null;
 
@@ -19,6 +24,9 @@ httpClient.interceptors.request.use(config => {
     if (inMemoryAccessToken) {
         config.headers.Authorization = `Bearer ${inMemoryAccessToken}`;
     }
+    if (typeof window !== 'undefined') {
+        NProgress.start();
+    }
     return config;
 });
 
@@ -36,8 +44,16 @@ const onRefreshed = (token: string) => {
 };
 
 httpClient.interceptors.response.use(
-    (response) => response,
+    (response) => {
+        if (typeof window !== 'undefined') {
+            NProgress.done();
+        }
+        return response;
+    },
     async (error) => {
+        if (typeof window !== 'undefined') {
+            NProgress.done();
+        }
         const originalRequest = error.config;
 
         if (error.response?.status === 401 && !originalRequest._retry) {

@@ -187,12 +187,7 @@ export default function ProfilePage() {
     }, [isAuthenticated, createdWorkflows]);
 
     if (authLoading || (isAuthenticated && loading && !error)) {
-        return (
-            <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
-                <Loader2 className="w-12 h-12 animate-spin text-zinc-900 dark:text-zinc-100" />
-                <p className="text-zinc-500 font-medium animate-pulse">Loading your profile...</p>
-            </div>
-        );
+        return null;
     }
 
     if (error) {
