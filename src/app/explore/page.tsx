@@ -133,9 +133,6 @@ export default function ExplorePage() {
                                     className="group block border border-zinc-200 dark:border-zinc-800 rounded-3xl p-6 hover:shadow-xl transition-all hover:-translate-y-1 bg-white dark:bg-zinc-900"
                                 >
                                     <h3 className="font-bold text-xl mb-2 leading-tight break-words">{wf.name}</h3>
-                                    <p className="text-zinc-500 text-sm mb-6 line-clamp-2 min-h-[40px]">
-                                        {wf.description || "No description provided."}
-                                    </p>
                                     
                                     <div className="flex items-center justify-between mt-auto">
                                         <div className="flex -space-x-2">
