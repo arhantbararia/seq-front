@@ -13,8 +13,45 @@ import {
     Power, Info, ArrowRight,
     User as UserIcon, ShieldAlert
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, renderTextWithLinks } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
+import {
+    getServiceIcon,
+    getProviderColor,
+    isGenericIcon
+} from "@/lib/providerBrands";
+import {
+    Globe, Webhook, Clock, Rss, Mail, Twitter,
+    Facebook, Youtube, Music, Instagram, Camera,
+    Smartphone, HardDrive, FileText, Activity,
+    Linkedin, MessageCircle, MessageSquare, Bell,
+    Send, Github
+} from "lucide-react";
+
+const iconMap: Record<string, React.FC<any>> = {
+    default: Globe,
+    webhook: Webhook,
+    clock: Clock,
+    rss: Rss,
+    mail: Mail,
+    globe: Globe,
+    twitter: Twitter,
+    facebook: Facebook,
+    youtube: Youtube,
+    music: Music,
+    instagram: Instagram,
+    camera: Camera,
+    smartphone: Smartphone,
+    'hard-drive': HardDrive,
+    'file-text': FileText,
+    activity: Activity,
+    linkedin: Linkedin,
+    'message-circle': MessageCircle,
+    'message-square': MessageSquare,
+    bell: Bell,
+    send: Send,
+    github: Github,
+};
 
 export default function WorkflowDetailPage() {
     const params = useParams();
@@ -25,6 +62,8 @@ export default function WorkflowDetailPage() {
     const [workflow, setWorkflow] = useState<any>(null);
     const [providers, setProviders] = useState<PluginProviderRead[]>([]);
     const [creator, setCreator] = useState<any>(null);
+    const [triggerCapability, setTriggerCapability] = useState<any>(null);
+    const [actionCapability, setActionCapability] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [isActionLoading, setIsActionLoading] = useState(false);
 
@@ -34,18 +73,39 @@ export default function WorkflowDetailPage() {
                 httpClient.get(`/api/v1/plugins/providers`),
                 httpClient.get(`/api/v1/workflows/${workflowId}`)
             ]);
+            
+            const wfData = workflowRes.data;
             setProviders(providersRes.data);
-            setWorkflow(workflowRes.data);
+            setWorkflow(wfData);
 
-            // Fetch creator details
-            if (workflowRes.data.user_id) {
-                try {
-                    const creatorRes = await httpClient.get(`/api/v1/user/${workflowRes.data.user_id}`);
-                    setCreator(creatorRes.data);
-                } catch (userErr) {
-                    console.error("Failed to fetch creator details", userErr);
-                }
+            // Fetch capabilities and creator in parallel for better performance
+            const extraDataPromises: Promise<any>[] = [];
+
+            if (wfData.user_id) {
+                extraDataPromises.push(
+                    httpClient.get(`/api/v1/user/${wfData.user_id}`)
+                        .then(res => setCreator(res.data))
+                        .catch(err => console.error("Failed to fetch creator", err))
+                );
             }
+
+            if (wfData.trigger) {
+                extraDataPromises.push(
+                    httpClient.get(`/api/v1/triggers?provider_id=${wfData.trigger.plugin_provider_id}`)
+                        .then(res => setTriggerCapability(res.data.find((c: any) => c.unique_key === wfData.trigger.capability_key)))
+                        .catch(err => console.error("Failed to fetch trigger capability", err))
+                );
+            }
+
+            if (wfData.action) {
+                extraDataPromises.push(
+                    httpClient.get(`/api/v1/actions?provider_id=${wfData.action.plugin_provider_id}`)
+                        .then(res => setActionCapability(res.data.find((c: any) => c.unique_key === wfData.action.capability_key)))
+                        .catch(err => console.error("Failed to fetch action capability", err))
+                );
+            }
+
+            await Promise.all(extraDataPromises);
         } catch (err) {
             console.error(err);
         } finally {
@@ -154,19 +214,43 @@ export default function WorkflowDetailPage() {
     const isCreator = user && workflow.user_id === user.id;
     const isSubscribed = user && workflow.subscribers?.some((s: any) => s.id === user.id);
 
-    const renderConfigValue = (key: string, value: any) => {
+    const renderConfigKey = (key: string) => {
         if (key === '_auth_context' || key.toLowerCase().includes('token') || key.toLowerCase().includes('key') || key.toLowerCase().includes('secret')) {
             return null;
         }
 
         return (
-            <div key={key} className="flex flex-col sm:flex-row sm:items-center justify-between py-3 border-b border-zinc-100 dark:border-zinc-800 last:border-0">
-                <span className="text-xs font-bold uppercase tracking-wider text-zinc-400 mb-1 sm:mb-0">
-                    {key.replace(/_/g, ' ')}
-                </span>
-                <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 truncate max-w-[200px] sm:max-w-xs">
-                    {typeof value === 'object' ? JSON.stringify(value) : String(value)}
-                </span>
+            <div key={key} className="inline-flex items-center px-3 py-1.5 bg-zinc-100 dark:bg-zinc-800 rounded-xl text-[10px] font-black uppercase tracking-wider text-zinc-500 border border-zinc-200 dark:border-zinc-700/50">
+                {key.replace(/_/g, ' ')}
+            </div>
+        );
+    };
+
+    const ProviderIcon = ({ provider, isDark = false }: { provider: any, isDark?: boolean }) => {
+        const [imgError, setImgError] = useState(false);
+        if (!provider) return <Globe size={24} />;
+        
+        const serviceIconUrl = getServiceIcon(provider.icon, isDark);
+        const genericIcon = isGenericIcon(provider.icon);
+        const IconComponent = iconMap[provider.icon?.toLowerCase()] || Globe;
+        const showLogo = serviceIconUrl && !imgError;
+
+        return (
+            <div className="w-16 h-16 rounded-2xl bg-white dark:bg-zinc-900 flex items-center justify-center shadow-inner overflow-hidden relative border border-zinc-100 dark:border-zinc-800">
+                {showLogo ? (
+                    <img 
+                        src={serviceIconUrl} 
+                        alt={provider.name} 
+                        className="w-8 h-8 object-contain"
+                        onError={() => setImgError(true)}
+                    />
+                ) : genericIcon ? (
+                    <IconComponent size={32} className="text-zinc-400" />
+                ) : (
+                    <span className="text-2xl font-black text-zinc-400">
+                        {provider.name.charAt(0)}
+                    </span>
+                )}
             </div>
         );
     };
@@ -184,14 +268,16 @@ export default function WorkflowDetailPage() {
                 {/* Main Content */}
                 <div className="lg:col-span-2 space-y-8">
                     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-                        <div className="flex items-center gap-3 mb-4">
-                            <span className={cn(
-                                "px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter",
-                                workflow.is_enabled ? "bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30" : "bg-amber-100 text-amber-600 dark:bg-amber-900/30"
-                            )}>
-                                {workflow.is_enabled ? "Active" : "Paused"}
-                            </span>
-                            <span className="text-zinc-400 text-sm font-medium">•</span>
+                        <div className="flex items-center gap-3 mb-4 min-h-[28px]">
+                            {(isCreator || isSubscribed) && (
+                                <span className={cn(
+                                    "px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter",
+                                    workflow.is_enabled ? "bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30" : "bg-amber-100 text-amber-600 dark:bg-amber-900/30"
+                                )}>
+                                    {workflow.is_enabled ? "Active" : "Paused"}
+                                </span>
+                            )}
+                            {(isCreator || isSubscribed) && <span className="text-zinc-400 text-sm font-medium">•</span>}
                             <span className="text-zinc-500 text-sm font-medium flex items-center gap-1">
                                 <Calendar size={14} />
                                 {new Date(workflow.created_at).toLocaleDateString()}
@@ -199,7 +285,7 @@ export default function WorkflowDetailPage() {
                         </div>
                         <h1 className="text-4xl md:text-5xl font-black tracking-tight mb-4 leading-tight">{workflow.name}</h1>
                         <p className="text-lg text-zinc-500 leading-relaxed max-w-2xl">
-                            {workflow.description || "A powerful automation designed to streamline your digital workflow by connecting your favorite services seamlessly."}
+                            {renderTextWithLinks(workflow.description)}
                         </p>
                     </motion.div>
 
@@ -216,26 +302,32 @@ export default function WorkflowDetailPage() {
                                 <Zap size={80} fill="currentColor" />
                             </div>
                             <div className="flex items-center gap-6 mb-8 relative z-10">
-                                <div className="w-16 h-16 rounded-2xl bg-zinc-100 dark:bg-zinc-900 flex items-center justify-center text-2xl font-black shadow-inner">
-                                    {triggerProvider?.name.charAt(0) || 'T'}
-                                </div>
+                                <ProviderIcon provider={triggerProvider} />
                                 <div>
                                     <div className="text-xs font-black uppercase tracking-widest text-indigo-500 mb-1">Trigger Event</div>
                                     <div className="font-bold text-2xl tracking-tight">{triggerProvider?.name || 'Unknown Service'}</div>
-                                    <div className="text-zinc-500 font-medium text-sm">{workflow.trigger?.name}</div>
                                 </div>
                             </div>
 
                             <div className="bg-zinc-50 dark:bg-zinc-900/50 rounded-2xl p-6 relative z-10 border border-zinc-100 dark:border-zinc-800/50">
-                                <div className="flex items-center gap-2 mb-4 text-xs font-black text-zinc-400 uppercase tracking-wider">
-                                    <Info size={14} />
-                                    Configuration Details
-                                </div>
-                                <div className="space-y-1">
-                                    {Object.entries(workflow.trigger?.config || {}).map(([key, value]) => renderConfigValue(key, value))}
-                                    {Object.keys(workflow.trigger?.config || {}).filter(k => k !== '_auth_context').length === 0 && (
-                                        <p className="text-sm italic text-zinc-400">No public configuration visible.</p>
+                                <div className="mb-4">
+                                    <div className="text-xs font-black text-zinc-400 uppercase tracking-wider mb-1">Capability</div>
+                                    <div className="font-bold text-lg">{triggerCapability?.name || workflow.trigger?.name}</div>
+                                    {triggerCapability?.description && (
+                                        <div className="text-xs text-zinc-500 mt-1">{renderTextWithLinks(triggerCapability.description)}</div>
                                     )}
+                                </div>
+                                <div className="space-y-2">
+                                    <div className="flex items-center gap-2 text-[10px] font-black text-zinc-400 uppercase tracking-widest">
+                                        <Info size={12} />
+                                        Config Parameters
+                                    </div>
+                                    <div className="flex flex-wrap gap-2">
+                                        {Object.keys(workflow.trigger?.config || {}).map(renderConfigKey)}
+                                        {Object.keys(workflow.trigger?.config || {}).filter(k => k !== '_auth_context').length === 0 && (
+                                            <p className="text-sm italic text-zinc-400">No parameters required.</p>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         </motion.div>
@@ -258,26 +350,32 @@ export default function WorkflowDetailPage() {
                                 <Play size={80} fill="currentColor" />
                             </div>
                             <div className="flex items-center gap-6 mb-8 relative z-10">
-                                <div className="w-16 h-16 rounded-2xl bg-zinc-100 dark:bg-zinc-900 flex items-center justify-center text-2xl font-black shadow-inner">
-                                    {actionProvider?.name.charAt(0) || 'A'}
-                                </div>
+                                <ProviderIcon provider={actionProvider} />
                                 <div>
                                     <div className="text-xs font-black uppercase tracking-widest text-emerald-500 mb-1">Action Flow</div>
                                     <div className="font-bold text-2xl tracking-tight">{actionProvider?.name || 'Unknown Service'}</div>
-                                    <div className="text-zinc-500 font-medium text-sm">{workflow.action?.name}</div>
                                 </div>
                             </div>
 
                             <div className="bg-zinc-50 dark:bg-zinc-900/50 rounded-2xl p-6 relative z-10 border border-zinc-100 dark:border-zinc-800/50">
-                                <div className="flex items-center gap-2 mb-4 text-xs font-black text-zinc-400 uppercase tracking-wider">
-                                    <Info size={14} />
-                                    Configuration Details
-                                </div>
-                                <div className="space-y-1">
-                                    {Object.entries(workflow.action?.config || {}).map(([key, value]) => renderConfigValue(key, value))}
-                                    {Object.keys(workflow.action?.config || {}).filter(k => k !== '_auth_context').length === 0 && (
-                                        <p className="text-sm italic text-zinc-400">No public configuration visible.</p>
+                                <div className="mb-4">
+                                    <div className="text-xs font-black text-zinc-400 uppercase tracking-wider mb-1">Capability</div>
+                                    <div className="font-bold text-lg">{actionCapability?.name || workflow.action?.name}</div>
+                                    {actionCapability?.description && (
+                                        <div className="text-xs text-zinc-500 mt-1">{renderTextWithLinks(actionCapability.description)}</div>
                                     )}
+                                </div>
+                                <div className="space-y-2">
+                                    <div className="flex items-center gap-2 text-[10px] font-black text-zinc-400 uppercase tracking-widest">
+                                        <Info size={12} />
+                                        Config Parameters
+                                    </div>
+                                    <div className="flex flex-wrap gap-2">
+                                        {Object.keys(workflow.action?.config || {}).map(renderConfigKey)}
+                                        {Object.keys(workflow.action?.config || {}).filter(k => k !== '_auth_context').length === 0 && (
+                                            <p className="text-sm italic text-zinc-400">No parameters required.</p>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         </motion.div>
@@ -306,7 +404,7 @@ export default function WorkflowDetailPage() {
                                         {isCreator ? "Created by You" : `Created by ${creator?.username || '...'}`}
                                     </div>
                                     <div className="text-white/60 text-xs font-medium">
-                                        {isCreator ? "Owner & Creator" : isSubscribed ? "Active Subscriber" : ""}
+                                        {isCreator ? "Owner" : isSubscribed ? "Subscribed" : ""}
                                     </div>
                                 </div>
                             </div>
