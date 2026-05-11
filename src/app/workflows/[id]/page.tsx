@@ -226,17 +226,19 @@ export default function WorkflowDetailPage() {
         );
     };
 
-    const ProviderIcon = ({ provider, isDark = false }: { provider: any, isDark?: boolean }) => {
+    const ProviderIcon = ({ provider }: { provider: any }) => {
         const [imgError, setImgError] = useState(false);
         if (!provider) return <Globe size={24} />;
         
-        const serviceIconUrl = getServiceIcon(provider.icon, isDark);
+        const brandColor = getProviderColor(provider.name);
+        const colorHex = brandColor.replace('#', '');
+        const serviceIconUrl = getServiceIcon(provider.icon, false, colorHex);
         const genericIcon = isGenericIcon(provider.icon);
         const IconComponent = iconMap[provider.icon?.toLowerCase()] || Globe;
         const showLogo = serviceIconUrl && !imgError;
 
         return (
-            <div className="w-16 h-16 rounded-2xl bg-white dark:bg-zinc-900 flex items-center justify-center shadow-inner overflow-hidden relative border border-zinc-100 dark:border-zinc-800">
+            <div className="w-16 h-16 rounded-2xl bg-zinc-50 dark:bg-zinc-900 flex items-center justify-center shadow-inner overflow-hidden relative border border-zinc-100 dark:border-zinc-800">
                 {showLogo ? (
                     <img 
                         src={serviceIconUrl} 
@@ -244,12 +246,16 @@ export default function WorkflowDetailPage() {
                         className="w-8 h-8 object-contain"
                         onError={() => setImgError(true)}
                     />
-                ) : genericIcon ? (
-                    <IconComponent size={32} className="text-zinc-400" />
                 ) : (
-                    <span className="text-2xl font-black text-zinc-400">
-                        {provider.name.charAt(0)}
-                    </span>
+                    <div style={{ color: brandColor }}>
+                        {genericIcon ? (
+                            <IconComponent size={32} />
+                        ) : (
+                            <span className="text-2xl font-black">
+                                {provider.name.charAt(0)}
+                            </span>
+                        )}
+                    </div>
                 )}
             </div>
         );
