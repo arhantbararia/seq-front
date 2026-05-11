@@ -9,10 +9,12 @@ import Link from "next/link";
 import { 
     User, Mail, ArrowRight, Loader2, 
     Layers, Zap, ShieldCheck, ExternalLink,
-    ChevronRight, Settings, AlertCircle, RefreshCw
+    ChevronRight, Settings, AlertCircle, RefreshCw,
+    ShieldAlert, Plus
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
+import { getServiceIcon, getProviderColor } from "@/lib/providerBrands";
 
 interface UserProfileRead {
     id: string;
@@ -187,7 +189,12 @@ export default function ProfilePage() {
     }, [isAuthenticated, createdWorkflows]);
 
     if (authLoading || (isAuthenticated && loading && !error)) {
-        return null;
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+                <Loader2 className="w-12 h-12 animate-spin text-zinc-900 dark:text-zinc-100" />
+                <p className="text-zinc-500 font-medium animate-pulse">Loading profile...</p>
+            </div>
+        );
     }
 
     if (error) {
@@ -223,8 +230,44 @@ export default function ProfilePage() {
 
     const connectedProviders = providers.filter(p => profile?.connected_accounts.includes(p.id));
     const connectedAccountIds = connectedProviders.map(p => p.id);
-    const getProviderInitial = (id: string) => providers.find(p => p.id === id)?.name?.charAt(0).toUpperCase() || "?";
     const getProviderName = (id: string) => providers.find(p => p.id === id)?.name || id;
+    const getProviderInitial = (id: string) => getProviderName(id).charAt(0).toUpperCase();
+    const getProviderById = (id: string) => providers.find(p => p.id === id);
+
+    const renderProviderIcon = (providerId: string, isEnabled: boolean) => {
+        const provider = getProviderById(providerId);
+        if (!provider) return <span className="uppercase">{getProviderInitial(providerId)}</span>;
+
+        const iconColor = isEnabled ? 'ffffff' : '71717a'; 
+        const logoUrl = provider.logo_url || getServiceIcon(provider.icon, isEnabled, iconColor);
+        
+        return (
+            <div 
+                className={cn(
+                    "w-full h-full rounded-full flex items-center justify-center overflow-hidden transition-all duration-500",
+                    !isEnabled && "bg-zinc-100 dark:bg-zinc-800"
+                )} 
+                style={{ backgroundColor: isEnabled ? getProviderColor(provider.name) : undefined }}
+            >
+                {logoUrl ? (
+                    <img
+                        src={logoUrl}
+                        alt={provider.name}
+                        className={cn("w-7 h-7 object-contain", !isEnabled && "grayscale opacity-80")}
+                        onError={(e) => {
+                            (e.target as HTMLImageElement).style.display = 'none';
+                            (e.target as HTMLImageElement).parentElement!.innerHTML =
+                                `<span class="${isEnabled ? 'text-white' : 'text-zinc-500'} text-sm font-bold uppercase">${provider.name[0]}</span>`;
+                        }}
+                    />
+                ) : (
+                    <span className={cn("text-sm font-bold uppercase", isEnabled ? "text-white" : "text-zinc-500")}>
+                        {provider.name[0]}
+                    </span>
+                )}
+            </div>
+        );
+    };
 
     return (
         <div className="max-w-6xl mx-auto pb-32 pt-24 px-6">
@@ -322,8 +365,8 @@ export default function ProfilePage() {
                                 <div className="flex items-center justify-between mb-6">
                                     <div className="flex -space-x-3 items-center">
                                         <div className="relative group/trigger">
-                                            <div className="w-12 h-12 rounded-full flex items-center justify-center text-zinc-900 dark:text-zinc-100 font-bold shadow-md border-4 border-white dark:border-zinc-950 bg-zinc-100 dark:bg-zinc-800 z-10 uppercase overflow-hidden">
-                                                {getProviderInitial(workflow.trigger?.plugin_provider_id)}
+                                            <div className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold shadow-md border-4 border-white dark:border-zinc-950 z-10 overflow-hidden">
+                                                {renderProviderIcon(workflow.trigger?.plugin_provider_id, workflow.is_enabled)}
                                             </div>
                                             <div className={cn(
                                                 "absolute -top-1 -right-1 w-3 h-3 rounded-full border-2 border-white dark:border-zinc-950 transition-all duration-500",
@@ -333,8 +376,8 @@ export default function ProfilePage() {
                                             )} />
                                         </div>
                                         <div className="relative group/action">
-                                            <div className="w-12 h-12 rounded-full flex items-center justify-center text-zinc-900 dark:text-zinc-100 font-bold shadow-md border-4 border-white dark:border-zinc-950 bg-zinc-200 dark:bg-zinc-700 z-0 uppercase overflow-hidden">
-                                                {getProviderInitial(workflow.action?.plugin_provider_id)}
+                                            <div className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold shadow-md border-4 border-white dark:border-zinc-950 z-0 overflow-hidden">
+                                                {renderProviderIcon(workflow.action?.plugin_provider_id, workflow.is_enabled)}
                                             </div>
                                             <div className={cn(
                                                 "absolute -top-1 -right-1 w-3 h-3 rounded-full border-2 border-white dark:border-zinc-950 transition-all duration-500",
@@ -408,10 +451,43 @@ export default function ProfilePage() {
                                 transition={{ delay: i * 0.05 }}
                                 className="group bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 p-6 rounded-[1.5rem] flex flex-col items-center gap-3 transition-all hover:border-zinc-900 dark:hover:border-white hover:shadow-lg text-center"
                             >
-                                <div className="w-12 h-12 rounded-xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center group-hover:bg-zinc-900 dark:group-hover:bg-zinc-100 transition-colors">
-                                    <span className="text-xl font-black text-zinc-400 group-hover:text-white dark:group-hover:text-black">
-                                        {provider.name.charAt(0).toUpperCase()}
-                                    </span>
+                                <div 
+                                    className="w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300"
+                                    style={{ 
+                                        backgroundColor: 'var(--provider-bg, transparent)',
+                                    }}
+                                >
+                                    {(() => {
+                                        const logoUrl = provider.logo_url || getServiceIcon(provider.icon, true);
+                                        const brandColor = getProviderColor(provider.name);
+                                        return logoUrl ? (
+                                            <img
+                                                src={logoUrl}
+                                                alt={provider.name}
+                                                className="w-8 h-8 object-contain transition-all group-hover:scale-110"
+                                                style={{ 
+                                                    filter: 'grayscale(1) brightness(0.8)',
+                                                }}
+                                                onMouseEnter={(e) => {
+                                                    (e.currentTarget.style.filter = 'none');
+                                                    (e.currentTarget.parentElement!.style.backgroundColor = brandColor);
+                                                }}
+                                                onMouseLeave={(e) => {
+                                                    (e.currentTarget.style.filter = 'grayscale(1) brightness(0.8)');
+                                                    (e.currentTarget.parentElement!.style.backgroundColor = 'transparent');
+                                                }}
+                                                onError={(e) => {
+                                                    (e.target as HTMLImageElement).style.display = 'none';
+                                                    (e.target as HTMLImageElement).parentElement!.innerHTML =
+                                                        `<span class="text-xl font-black text-zinc-400 group-hover:text-white dark:group-hover:text-black">${provider.name[0]}</span>`;
+                                                }}
+                                            />
+                                        ) : (
+                                            <span className="text-xl font-black text-zinc-400 group-hover:text-white dark:group-hover:text-black">
+                                                {provider.name.charAt(0).toUpperCase()}
+                                            </span>
+                                        );
+                                    })()}
                                 </div>
                                 <span className="font-bold text-sm tracking-tight truncate w-full">{provider.name}</span>
                             </motion.div>

@@ -77,14 +77,13 @@ export function isGenericIcon(icon: string): boolean {
  * Build the Simple Icons URL for a provider's icon.
  * Returns null if the icon is generic (Lucide) or not provided.
  */
-export function getServiceIcon(icon?: string | null, isDark?: boolean): string | null {
+export function getServiceIcon(icon?: string | null, isDark?: boolean, color?: string): string | null {
     if (!icon || isGenericIcon(icon)) return null;
     
-    // We can use a colored Simple Icon (e.g., white for dark theme, or the brand color)
-    // The user suggested isDark ? 'ffffff' : '111111'
-    const color = isDark ? 'ffffff' : '111111';
+    // Use explicit color if provided, otherwise fallback to theme-based defaults
+    const iconColor = color || (isDark ? 'ffffff' : '111111');
     
-    return `https://cdn.simpleicons.org/${icon}/${color}`;
+    return `https://cdn.simpleicons.org/${icon}/${iconColor}`;
 }
 
 /**
