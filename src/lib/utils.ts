@@ -1,3 +1,4 @@
+import React from "react";
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 
@@ -25,3 +26,37 @@ export const removeAuthToken = () => {
     localStorage.removeItem(AUTH_TOKEN_KEY);
   }
 };
+
+export function renderTextWithLinks(text: string | null | undefined) {
+    if (!text) return null;
+    
+    const linkRegex = /(\[[^\]]+\]\(https?:\/\/[^\)]+\)|https?:\/\/[^\s]+)/g;
+    const parts = text.split(linkRegex);
+    
+    return parts.map((part, index) => {
+        if (!part) return null;
+        if (part.startsWith('[')) {
+            const match = part.match(/\[([^\]]+)\]\((https?:\/\/[^\)]+)\)/);
+            if (match) {
+                return React.createElement('a', {
+                    key: index,
+                    href: match[2],
+                    target: '_blank',
+                    rel: 'noopener noreferrer',
+                    className: 'text-indigo-500 dark:text-indigo-400 hover:underline',
+                    onClick: (e: any) => e.stopPropagation()
+                }, match[1]);
+            }
+        } else if (part.startsWith('http')) {
+            return React.createElement('a', {
+                key: index,
+                href: part,
+                target: '_blank',
+                rel: 'noopener noreferrer',
+                className: 'text-indigo-500 dark:text-indigo-400 hover:underline break-all',
+                onClick: (e: any) => e.stopPropagation()
+            }, part);
+        }
+        return part;
+    });
+}

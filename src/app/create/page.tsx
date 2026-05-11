@@ -11,7 +11,7 @@ import { motion } from "framer-motion";
 import { ChevronLeft, Check, Zap, Play, Loader2, Link2 } from "lucide-react";
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { cn } from "@/lib/utils";
+import { cn, renderTextWithLinks } from "@/lib/utils";
 import { getServiceIcon } from "@/lib/providerBrands";
 
 type ViewState =
@@ -531,7 +531,7 @@ function CreatePageInternal() {
                     <div className="w-full lg:w-1/3 space-y-4">
                         <div className="bg-zinc-50 dark:bg-zinc-900 rounded-3xl p-6 border border-zinc-200 dark:border-zinc-800">
                             <h4 className="font-bold text-lg mb-2">About</h4>
-                            <p className="text-zinc-500 text-sm">{selectedTrigger?.description || "No description available."}</p>
+                            <p className="text-zinc-500 text-sm">{renderTextWithLinks(selectedTrigger?.description || "No description available.")}</p>
                         </div>
                     </div>
                 </div>
@@ -582,7 +582,7 @@ function CreatePageInternal() {
                     <div className="w-full lg:w-1/3 space-y-4">
                         <div className="bg-zinc-50 dark:bg-zinc-900 rounded-3xl p-6 border border-zinc-200 dark:border-zinc-800">
                             <h4 className="font-bold text-lg mb-2">About</h4>
-                            <p className="text-zinc-500 text-sm">{selectedAction?.description || "No description available."}</p>
+                            <p className="text-zinc-500 text-sm">{renderTextWithLinks(selectedAction?.description || "No description available.")}</p>
                         </div>
                     </div>
                 </div>

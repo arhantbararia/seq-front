@@ -17,7 +17,7 @@ import {
     Lock
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { cn } from "@/lib/utils";
+import { cn, renderTextWithLinks } from "@/lib/utils";
 import { PluginAuthModal } from "@/components/PluginAuthModal";
 
 export default function WorkflowSetupPage() {
@@ -191,7 +191,7 @@ export default function WorkflowSetupPage() {
                             <Settings2 size={14} /> Functionality
                         </div>
                         <div className="font-bold">{capability?.name || workflow[type]?.name}</div>
-                        <div className="text-sm text-zinc-500 mt-1">{capability?.description}</div>
+                        <div className="text-sm text-zinc-500 mt-1">{renderTextWithLinks(capability?.description)}</div>
                     </div>
 
                     <AnimatePresence>
