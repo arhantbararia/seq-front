@@ -4,12 +4,17 @@ import { Sun, Moon } from "lucide-react";
 import { Button } from "./button";
 
 export function DarkModeToggle() {
-  const [theme, setTheme] = useState<'dark'|'light'|'system'>('system');
+  const [theme, setTheme] = useState<'dark'|'light'|'system'>('dark');
 
   useEffect(() => {
     const saved = localStorage.getItem('site:theme');
-    if (saved === 'dark' || saved === 'light' || saved === 'system') setTheme(saved);
-    applyTheme((saved as any) || 'system');
+    if (saved === 'dark' || saved === 'light' || saved === 'system') {
+      setTheme(saved);
+      applyTheme(saved);
+    } else {
+      setTheme('dark');
+      applyTheme('dark');
+    }
   }, []);
 
   const applyTheme = (value: 'dark'|'light'|'system') => {

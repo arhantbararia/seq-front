@@ -25,7 +25,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" className="dark" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-zinc-50 dark:bg-black text-zinc-900 dark:text-zinc-100 font-sans`}
         suppressHydrationWarning
@@ -36,7 +36,7 @@ export default function RootLayout({
             {children}
           </main>
         </AuthProvider>
-        <script dangerouslySetInnerHTML={{ __html: `(function(){try{var t=localStorage.getItem('site:theme');if(t==='dark'){document.documentElement.setAttribute('data-theme','dark');document.documentElement.classList.add('dark');}else if(t==='light'){document.documentElement.setAttribute('data-theme','light');document.documentElement.classList.remove('dark');} }catch(e){} })()` }} />
+        <script dangerouslySetInnerHTML={{ __html: `(function(){try{var t=localStorage.getItem('site:theme');if(t==='light'){document.documentElement.classList.remove('dark');document.documentElement.setAttribute('data-theme','light');}else{document.documentElement.classList.add('dark');document.documentElement.setAttribute('data-theme','dark');}}catch(e){}})()` }} />
       </body>
     </html>
   );
