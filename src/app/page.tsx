@@ -85,7 +85,9 @@ export default function Home() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.05 * index }}
               >
-                <PluginCard plugin={plugin} />
+                <Link href={`/provider/${plugin.id}`}>
+                  <PluginCard plugin={plugin} />
+                </Link>
               </motion.div>
             ))}
           </div>
