@@ -121,7 +121,7 @@ export default function ProviderPage() {
                     className="w-32 h-32 rounded-[2rem] flex items-center justify-center shadow-2xl mb-8 border-4 border-white dark:border-zinc-900 relative overflow-hidden"
                     style={{ backgroundColor: brandColor }}
                 >
-                    <ProviderAvatar provider={provider} className="w-full h-full text-5xl !border-none !shadow-none !rounded-none" />
+                    <ProviderAvatar provider={provider} className="w-full h-full text-5xl !border-none !shadow-none !rounded-none" iconClassName="w-16 h-16" iconSize={64} />
                 </div>
                 <h1 className="text-5xl font-black mb-4 tracking-tight">{provider.name}</h1>
                 <p className="text-xl text-zinc-500 max-w-2xl">
@@ -138,18 +138,14 @@ export default function ProviderPage() {
                 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
                     {/* Triggers */}
-                    <div>
-                        <div className="flex items-center gap-3 mb-6">
-                            <div className="p-2 bg-emerald-100 text-emerald-600 rounded-xl dark:bg-emerald-900/30 dark:text-emerald-400">
-                                <Zap size={24} />
+                    {triggers.length > 0 && (
+                        <div>
+                            <div className="flex items-center gap-3 mb-6">
+                                <div className="p-2 bg-emerald-100 text-emerald-600 rounded-xl dark:bg-emerald-900/30 dark:text-emerald-400">
+                                    <Zap size={24} />
+                                </div>
+                                <h3 className="text-2xl font-bold">Triggers</h3>
                             </div>
-                            <h3 className="text-2xl font-bold">Triggers</h3>
-                        </div>
-                        {triggers.length === 0 ? (
-                            <div className="p-6 border border-zinc-200 dark:border-zinc-800 rounded-3xl text-zinc-500 bg-zinc-50 dark:bg-zinc-900/50">
-                                No triggers available for this provider.
-                            </div>
-                        ) : (
                             <div className="flex flex-col gap-4">
                                 {triggers.map((trigger, idx) => (
                                     <motion.div 
@@ -159,27 +155,22 @@ export default function ProviderPage() {
                                         transition={{ delay: idx * 0.05 }}
                                         className="p-6 border border-zinc-200 dark:border-zinc-800 rounded-3xl hover:shadow-md transition-all cursor-pointer hover:border-emerald-200 dark:hover:border-emerald-900/50 group bg-white dark:bg-zinc-900"
                                     >
-                                        <h4 className="font-bold text-lg mb-2 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">{trigger.name || trigger.capability_key}</h4>
-                                        <p className="text-zinc-500 text-sm">{trigger.description || 'When this event happens...'}</p>
+                                        <h4 className="font-bold text-lg group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">{trigger.name || trigger.capability_key}</h4>
                                     </motion.div>
                                 ))}
                             </div>
-                        )}
-                    </div>
+                        </div>
+                    )}
 
                     {/* Actions */}
-                    <div>
-                        <div className="flex items-center gap-3 mb-6">
-                            <div className="p-2 bg-blue-100 text-blue-600 rounded-xl dark:bg-blue-900/30 dark:text-blue-400">
-                                <Play size={24} />
+                    {actions.length > 0 && (
+                        <div>
+                            <div className="flex items-center gap-3 mb-6">
+                                <div className="p-2 bg-blue-100 text-blue-600 rounded-xl dark:bg-blue-900/30 dark:text-blue-400">
+                                    <Play size={24} />
+                                </div>
+                                <h3 className="text-2xl font-bold">Actions</h3>
                             </div>
-                            <h3 className="text-2xl font-bold">Actions</h3>
-                        </div>
-                        {actions.length === 0 ? (
-                            <div className="p-6 border border-zinc-200 dark:border-zinc-800 rounded-3xl text-zinc-500 bg-zinc-50 dark:bg-zinc-900/50">
-                                No actions available for this provider.
-                            </div>
-                        ) : (
                             <div className="flex flex-col gap-4">
                                 {actions.map((action, idx) => (
                                     <motion.div 
@@ -189,13 +180,12 @@ export default function ProviderPage() {
                                         transition={{ delay: idx * 0.05 }}
                                         className="p-6 border border-zinc-200 dark:border-zinc-800 rounded-3xl hover:shadow-md transition-all cursor-pointer hover:border-blue-200 dark:hover:border-blue-900/50 group bg-white dark:bg-zinc-900"
                                     >
-                                        <h4 className="font-bold text-lg mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{action.name || action.capability_key}</h4>
-                                        <p className="text-zinc-500 text-sm">{action.description || 'Do this action automatically.'}</p>
+                                        <h4 className="font-bold text-lg group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{action.name || action.capability_key}</h4>
                                     </motion.div>
                                 ))}
                             </div>
-                        )}
-                    </div>
+                        </div>
+                    )}
                 </div>
             </div>
 

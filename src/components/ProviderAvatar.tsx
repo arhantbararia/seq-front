@@ -43,9 +43,11 @@ interface ProviderAvatarProps {
     provider?: PluginProviderRead | null;
     className?: string;
     style?: React.CSSProperties;
+    iconClassName?: string;
+    iconSize?: number;
 }
 
-export function ProviderAvatar({ provider, className, style }: ProviderAvatarProps) {
+export function ProviderAvatar({ provider, className, style, iconClassName, iconSize = 14 }: ProviderAvatarProps) {
     const [imgLoaded, setImgLoaded] = useState(false);
     const [imgError, setImgError] = useState(false);
 
@@ -58,7 +60,7 @@ export function ProviderAvatar({ provider, className, style }: ProviderAvatarPro
                 )} 
                 style={style}
             >
-                <Globe size={14} className="text-zinc-500" />
+                <Globe size={iconSize} className="text-zinc-500" />
             </div>
         );
     }
@@ -86,18 +88,19 @@ export function ProviderAvatar({ provider, className, style }: ProviderAvatarPro
                         src={logoUrl!}
                         alt={provider.name}
                         className={cn(
-                            "w-4 h-4 object-contain transition-opacity duration-300 z-10",
+                            "object-contain transition-opacity duration-300 z-10",
+                            iconClassName || "w-4 h-4",
                             imgLoaded ? "opacity-100" : "opacity-0"
                         )}
                         onLoad={() => setImgLoaded(true)}
                         onError={() => setImgError(true)}
                     />
                     {!imgLoaded && (
-                         <IconComponent size={14} className="absolute text-white opacity-50 inset-0 m-auto" />
+                         <IconComponent size={iconSize} className="absolute text-white opacity-50 inset-0 m-auto" />
                     )}
                 </>
             ) : genericIcon ? (
-                <IconComponent size={14} className="text-white" />
+                <IconComponent size={iconSize} className="text-white" />
             ) : (
                 <span className="font-bold uppercase text-white leading-none">{provider.name[0]}</span>
             )}
